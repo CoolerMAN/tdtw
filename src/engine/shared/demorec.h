@@ -14,7 +14,7 @@ struct CDemoHeader
 	char m_aType[8];
 };
 
-class CDemoRecorder
+class CDemoRecorder : public IDemoRecorder
 {
 	IOHANDLE m_File;
 	int m_LastTickMarker;
@@ -33,7 +33,7 @@ public:
 	void RecordSnapshot(int Tick, const void *pData, int Size);
 	void RecordMessage(const void *pData, int Size);
 
-	bool IsRecording() const { return m_File != 0; }
+	bool IsRecording() { return m_File != 0; }
 };
 
 class CDemoPlayer : public IDemoPlayer

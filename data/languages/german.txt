@@ -547,6 +547,9 @@ Quick search:
 Quit
 == Beenden
 
+Record demo
+== Demo aufn.
+
 Red team
 == Rotes team
 
@@ -699,6 +702,9 @@ Standard gametype
 
 Standard map
 == Standardkarte
+
+Stop demo
+== Demo stoppen
 
 Sudden Death
 == Sudden Death

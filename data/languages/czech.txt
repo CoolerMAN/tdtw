@@ -711,6 +711,9 @@ Previous Envelope
 Proof
 ==
 
+Record demo
+==
+
 Red value of the envelope
 ==
 
@@ -763,6 +766,9 @@ Select image
 ==
 
 Select layer. Right click for properties.
+==
+
+Stop demo
 ==
 
 Sudden Death

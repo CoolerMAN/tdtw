@@ -1,5 +1,5 @@
 // copyright (c) 2007 magnus auvinen, see licence.txt for more info
-
+#include <time.h>
 #include <base/math.h>
 
 
@@ -32,6 +32,8 @@ void CMenus::RenderGame(CUIRect MainView)
 	
 	MainView.VSplitRight(120.0f, &MainView, &Button);
 	static int s_DisconnectButton = 0;
+	static int s_DemoButton = 0;
+	
 	if(DoButton_Menu(&s_DisconnectButton, Localize("Disconnect"), 0, &Button))
 		Client()->Disconnect();
 
@@ -88,6 +90,33 @@ void CMenus::RenderGame(CUIRect MainView)
 					SetActive(false);
 				}
 			}
+		}
+		
+		if(!DemoRecorder()->IsRecording())
+		{
+			MainView.VSplitLeft(100.0f, &Button, &MainView);
+			MainView.VSplitLeft(150.0f, &Button, &MainView);
+			if(DoButton_Menu(&s_DemoButton, Localize("Record demo"), 0, &Button))
+				{
+					// find filename
+					char aFilename[128];
+
+					time_t Time;
+					
+					time(&Time);
+					tm* TimeInfo = localtime(&Time);
+					strftime(aFilename, sizeof(aFilename), "auto-%Y-%m-%d_%H:%M:%S", TimeInfo);
+					Client()->DemoRecorder_Start(aFilename);
+				}
+		}
+		else
+		{
+			MainView.VSplitLeft(100.0f, &Button, &MainView);
+			MainView.VSplitLeft(150.0f, &Button, &MainView);
+			if(DoButton_Menu(&s_DemoButton, Localize("Stop demo"), 0, &Button))
+				{
+					DemoRecorder()->Stop();
+				}
 		}
 	}
 	

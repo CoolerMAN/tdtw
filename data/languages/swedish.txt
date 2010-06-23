@@ -705,6 +705,9 @@ Previous Envelope
 Proof
 ==
 
+Record demo
+==
+
 Red value of the envelope
 ==
 
@@ -763,6 +766,9 @@ Square
 ==
 
 Squares the current quad
+==
+
+Stop demo
 ==
 
 Sudden Death

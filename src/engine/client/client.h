@@ -286,6 +286,7 @@ public:
 	void RegisterCommands();
 
 	const char *DemoPlayer_Play(const char *pFilename);
+	const char *DemoRecorder_Start(const char *pFilename);
 
 	virtual class CEngine *Engine() { return &m_Engine; }
 };
