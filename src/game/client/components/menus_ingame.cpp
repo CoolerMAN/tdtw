@@ -105,7 +105,7 @@ void CMenus::RenderGame(CUIRect MainView)
 					
 					time(&Time);
 					tm* TimeInfo = localtime(&Time);
-					strftime(aFilename, sizeof(aFilename), "auto-%Y-%m-%d_%H:%M:%S", TimeInfo);
+					strftime(aFilename, sizeof(aFilename), "auto-%Y-%m-%d_%H-%M-%S", TimeInfo);
 					Client()->DemoRecorder_Start(aFilename);
 				}
 		}
