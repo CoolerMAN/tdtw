@@ -243,8 +243,7 @@ void CGameClient::OnInit()
 	
 	// load default font	
 	static CFont *pDefaultFont;
-	//default_font = gfx_font_load("data/fonts/sazanami-gothic.ttf");
-	pDefaultFont = TextRender()->LoadFont("data/fonts/vera.ttf");
+	pDefaultFont = TextRender()->LoadFont("data/fonts/default.ttf");
 	TextRender()->SetDefaultFont(pDefaultFont);
 
 	g_Config.m_ClThreadsoundloading = 0;
