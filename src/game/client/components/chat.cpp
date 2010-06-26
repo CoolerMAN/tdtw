@@ -237,15 +237,15 @@ void CChat::OnRender()
 		// render name
 		TextRender()->TextColor(0.8f,0.8f,0.8f,1);
 		if(m_aLines[r].m_ClientId == -1)
-			TextRender()->TextColor(1,1,0.5f,1); // system
+			TextRender()->TextColor(1,0.945f,0.349f,1); // system
 		else if(m_aLines[r].m_Team)
-			TextRender()->TextColor(0.45f,0.9f,0.45f,1); // team message
+			TextRender()->TextColor(0.54f,1.0f,0.25f,1); // team message
 		else if(m_aLines[r].m_NameColor == 0)
-			TextRender()->TextColor(1.0f,0.5f,0.5f,1); // red
+			TextRender()->TextColor(0.89f,0.36f,0.41f,1); // red
 		else if(m_aLines[r].m_NameColor == 1)
-			TextRender()->TextColor(0.7f,0.7f,1.0f,1); // blue
+			TextRender()->TextColor(0.34f,0.40f,1.0f,1); // blue
 		else if(m_aLines[r].m_NameColor == -1)
-			TextRender()->TextColor(0.75f,0.5f,0.75f, 1); // spectator
+			TextRender()->TextColor(0.6f,0.6f,0.6f, 1); // spectator
 			
 		// render name
 		TextRender()->TextEx(&Cursor, m_aLines[r].m_aName, -1);
@@ -255,7 +255,7 @@ void CChat::OnRender()
 		if(m_aLines[r].m_ClientId == -1)
 			TextRender()->TextColor(1,1,0.5f,1); // system
 		else if(m_aLines[r].m_Team)
-			TextRender()->TextColor(0.65f,1,0.65f,1); // team message
+			TextRender()->TextColor(0.5411f,1,0.2509f,1); // team message
 
 		TextRender()->TextEx(&Cursor, m_aLines[r].m_aText, -1);
 	}
