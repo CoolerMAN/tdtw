@@ -90,6 +90,13 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 		Angle = 0; //-pi/6;//-0.25f * pi * 2.0f;
 		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[clamp(pCurrent->m_Subtype, 0, NUM_WEAPONS-1)].m_pSpriteBody);
 		Size = g_pData->m_Weapons.m_aId[clamp(pCurrent->m_Subtype, 0, NUM_WEAPONS-1)].m_VisualSize;
+		if(pCurrent->m_Subtype == 2)
+			m_pClient->m_pEffects->PowerupShine(Pos, vec2(64,32),vec4(0.25f,1,0.25f,1));
+		else if(pCurrent->m_Subtype == 3)
+			m_pClient->m_pEffects->PowerupShine(Pos, vec2(64,32),vec4(1,0.4f,0.4f,1));
+		else if(pCurrent->m_Subtype == 4)
+			m_pClient->m_pEffects->PowerupShine(Pos, vec2(64,32),vec4(0.3232f,0.03232f,1,1));
+		
 	}
 	else
 	{
@@ -126,12 +133,6 @@ void CItems::RenderFlag(const CNetObj_Flag *pPrev, const CNetObj_Flag *pCurrent)
 	Graphics()->BlendNormal();
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
-
-	if(pCurrent->m_Team == 0) // red team
-		RenderTools()->SelectSprite(SPRITE_FLAG_RED);
-	else
-		RenderTools()->SelectSprite(SPRITE_FLAG_BLUE);
-
 	Graphics()->QuadsSetRotation(Angle);
 
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
@@ -143,6 +144,17 @@ void CItems::RenderFlag(const CNetObj_Flag *pPrev, const CNetObj_Flag *pCurrent)
 	// make sure to use predicted position if we are the carrier
 	if(m_pClient->m_Snap.m_pLocalInfo && pCurrent->m_CarriedBy == m_pClient->m_Snap.m_pLocalInfo->m_ClientId)
 		Pos = m_pClient->m_LocalCharacterPos;
+
+	if(pCurrent->m_Team == 0) // red team
+	{
+		RenderTools()->SelectSprite(SPRITE_FLAG_RED);
+		m_pClient->m_pEffects->PowerupShine(Pos, vec2(32,32),vec4(0.89f,0.16f,0.21f,1));
+	}
+	else
+	{
+		RenderTools()->SelectSprite(SPRITE_FLAG_BLUE);
+		m_pClient->m_pEffects->PowerupShine(Pos, vec2(32,32),vec4(0.098f,0.10f,0.89f,1));
+	}
 
 	IGraphics::CQuadItem QuadItem(Pos.x, Pos.y-Size*0.75f, Size, Size*2);
 	Graphics()->QuadsDraw(&QuadItem, 1);
