@@ -256,15 +256,17 @@ void CHud::RenderHealthAndAmmo()
 	//mapscreen_to_group(gacenter_x, center_y, layers_game_group());
 
 	float x = 5;
-	float y = 5;
+	float y = 5;	
 	IGraphics::CQuadItem Weap[10];	 
-	char buf[32]; //Ammo indicators
+	char buf[32]; //Ammo indicators 
 
 	// render ammo count
 	// render gui stuff
 
 	Graphics()->MapScreen(0,0,m_Width,300);
-	
+			
+	Graphics()->BlendNormal();
+	Graphics()->TextureSet(-1);
 	Graphics()->QuadsBegin();
 	
 	// if weaponstage is active, put a "glow" around the stage ammo
@@ -282,7 +284,7 @@ void CHud::RenderHealthAndAmmo()
 	
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
-										   
+
 	RenderTools()->SelectSprite(SPRITE_WEAPON_HAMMER_BODY);
 	Weap[0] = IGraphics::CQuadItem(x,y+27,18,13.5f);	 
 	Graphics()->QuadsDrawTL(Weap, 1);
