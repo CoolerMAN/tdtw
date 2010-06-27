@@ -16,6 +16,8 @@
 #include "voting.h"
 #include "binds.h"
 
+static int weapons_ammo[5];
+
 CHud::CHud()
 {
 	// won't work if zero
@@ -192,7 +194,7 @@ void CHud::RenderTeambalanceWarning()
 				TextRender()->TextColor(1,1,0.5f,1);
 			else
 				TextRender()->TextColor(0.7f,0.7f,0.2f,1.0f);
-			TextRender()->Text(0x0, 5, 50, 6, pText, -1);
+			TextRender()->Text(0x0, 5, 60, 6, pText, -1);
 			TextRender()->TextColor(1,1,1,1);
 		}
 	}
@@ -255,21 +257,57 @@ void CHud::RenderHealthAndAmmo()
 
 	float x = 5;
 	float y = 5;
+	IGraphics::CQuadItem Weap[10];	 
+	char buf[32]; //Ammo indicators
 
 	// render ammo count
 	// render gui stuff
 
-	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->MapScreen(0,0,m_Width,300);
 	
 	Graphics()->QuadsBegin();
 	
 	// if weaponstage is active, put a "glow" around the stage ammo
+						 	
+	for (int i = 0; i < 5; i++)
+	{
+		if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS == i)
+			Graphics()->SetColor(1,1,1,0.25f);
+		else
+			Graphics()->SetColor(0,0,0,0.25f);
+		RenderTools()->DrawRoundRect(x-1+i*20+5*i, y+25, 20, 18, 2.0f);
+	}
+	
+	Graphics()->QuadsEnd();
+	
+	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
+	Graphics()->QuadsBegin();
+										   
+	RenderTools()->SelectSprite(SPRITE_WEAPON_HAMMER_BODY);
+	Weap[0] = IGraphics::CQuadItem(x,y+27,18,13.5f);	 
+	Graphics()->QuadsDrawTL(Weap, 1);
+														   	 
+	RenderTools()->SelectSprite(SPRITE_WEAPON_GUN_BODY); 
+	Weap[0] = IGraphics::CQuadItem(x+22+5,y+27,15,7.71f);
+	Graphics()->QuadsDrawTL(Weap, 1);
+															 
+	RenderTools()->SelectSprite(SPRITE_WEAPON_SHOTGUN_BODY); 
+	Weap[0] = IGraphics::CQuadItem(x+41+10,y+27,18,5.14f);	
+	Graphics()->QuadsDrawTL(Weap, 1);
+															  
+	RenderTools()->SelectSprite(SPRITE_WEAPON_GRENADE_BODY);  
+	Weap[0] = IGraphics::CQuadItem(x+60+15,y+27,18,5.14f);	 
+	Graphics()->QuadsDrawTL(Weap, 1);
+																													  
+	RenderTools()->SelectSprite(SPRITE_WEAPON_RIFLE_BODY);	
+	Weap[0] = IGraphics::CQuadItem(x+80+20,y+27,18,7.71f);	 
+	Graphics()->QuadsDrawTL(Weap, 1);
+
 	RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS].m_pSpriteProj);
 	IGraphics::CQuadItem Array[10];
 	int i;
 	for (i = 0; i < min(m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount, 10); i++)
-		Array[i] = IGraphics::CQuadItem(x+i*12,y+24,10,10);
+		Array[i] = IGraphics::CQuadItem(x+i*12,y+44,10,10);
 	Graphics()->QuadsDrawTL(Array, i);
 	Graphics()->QuadsEnd();
 
@@ -301,12 +339,51 @@ void CHud::RenderHealthAndAmmo()
 		Array[i++] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
 	Graphics()->QuadsDrawTL(Array, i);
 	Graphics()->QuadsEnd();
+
+	weapons_ammo[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
+	float w = TextRender()->TextWidth(0x0, 8, buf, -1);
+	for (int i = 1; i < 5; i++)
+	{
+		if (weapons_ammo[i] == -2)
+		{
+			str_format(buf, sizeof(buf), " ");
+			w = TextRender()->TextWidth(0x0, 8, buf, -1);
+			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
+		}
+		else if (weapons_ammo[i] == -1)
+		{
+			str_format(buf, sizeof(buf), "inf");
+			w = TextRender()->TextWidth(0x0, 8, buf, -1);
+			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
+		}
+		else if (weapons_ammo[i] > 10)
+		{
+			str_format(buf, sizeof(buf), "+10");
+			w = TextRender()->TextWidth(0x0, 8, buf, -1);
+			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
+		}
+		else if (weapons_ammo[i] >= 0 && weapons_ammo[i] <= 10)
+		{
+			str_format(buf, sizeof(buf), "%d", weapons_ammo[i]);
+			w = TextRender()->TextWidth(0x0, 8, buf, -1);
+			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
+		}
+		else
+		{
+			str_format(buf, sizeof(buf), "inf");
+			w = TextRender()->TextWidth(0x0, 8, buf, -1);
+			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
+		}
+	}
 }
 
 void CHud::OnRender()
 {
 	if(!m_pClient->m_Snap.m_pGameobj)
+	{
+		for (int i = 0; i < 5; i++) weapons_ammo[i] = -2;
 		return;
+	}
 		
 	m_Width = 300*Graphics()->ScreenAspect();
 
@@ -316,6 +393,7 @@ void CHud::OnRender()
 	
 	if(m_pClient->m_Snap.m_pLocalCharacter && !Spectate && !(m_pClient->m_Snap.m_pGameobj && m_pClient->m_Snap.m_pGameobj->m_GameOver))
 		RenderHealthAndAmmo();
+	else for (int i = 0; i < 5; i++) weapons_ammo[i] = -2;
 
 	RenderGameTimer();
 	RenderSuddenDeath();
