@@ -329,8 +329,19 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 			}
 			else if(Id == COL_PING)
 			{
+				if(pItem->m_Latency <= 45)
+					TextRender()->TextColor(0.5f,1,0.5f,1);
+				else if(pItem->m_Latency <= 95)
+					TextRender()->TextColor(0.85f,1.0f,0.65f,1);
+				else if(pItem->m_Latency <= 110)
+					TextRender()->TextColor(0.95f,0.85f,0.65f,1);
+				else if(pItem->m_Latency <= 135)
+					TextRender()->TextColor(0.95f,0.45f,0.45f,1);
+				else
+					TextRender()->TextColor(0.95f,0.25f,0.25f,1);
 				str_format(aTemp, sizeof(aTemp), "%i", pItem->m_Latency);
 				UI()->DoLabel(&Button, aTemp, 12.0f, 1);
+				TextRender()->TextColor(1,1,1,1);
 			}
 			else if(Id == COL_VERSION)
 			{
