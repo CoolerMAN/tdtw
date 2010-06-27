@@ -344,7 +344,15 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 				CTextCursor Cursor;
 				TextRender()->SetCursor(&Cursor, Button.x, Button.y, 12.0f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
 				Cursor.m_LineWidth = Button.w;
+				if(	str_comp(pItem->m_aGameType, "DM") == 0 ||
+					str_comp(pItem->m_aGameType, "TDM") == 0 ||
+					str_comp(pItem->m_aGameType, "CTF") == 0)
+					TextRender()->TextColor(0.5f,1,0.5f,1);
+				else
+					TextRender()->TextColor(1,1,1,1);
 				TextRender()->TextEx(&Cursor, pItem->m_aGameType, -1);
+				TextRender()->TextColor(1,1,1,1);
+
 			}
 
 		}
