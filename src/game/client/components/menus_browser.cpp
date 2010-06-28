@@ -321,6 +321,20 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 			}
 			else if(Id == COL_PLAYERS)
 			{
+				if(pItem->m_NumPlayers <= 3)
+					TextRender()->TextColor(0.5f,1,0.5f,1);		   
+				else if(pItem->m_NumPlayers <= 5)
+					TextRender()->TextColor(0.75f,1.0f,0.65f,1);
+				else if(pItem->m_NumPlayers <= 9)
+					TextRender()->TextColor(0.85f,1.0f,0.65f,1);  
+				else if(pItem->m_NumPlayers <= 11)
+					TextRender()->TextColor(0.95f,0.95f,0.65f,1);
+				else if(pItem->m_NumPlayers <= 13)
+					TextRender()->TextColor(0.95f,0.85f,0.65f,1);
+				else if(pItem->m_NumPlayers <= 15)
+					TextRender()->TextColor(0.95f,0.45f,0.45f,1);
+				else
+					TextRender()->TextColor(0.95f,0.25f,0.25f,1);
 				str_format(aTemp, sizeof(aTemp), "%i/%i", pItem->m_NumPlayers, pItem->m_MaxPlayers);
 				if(g_Config.m_BrFilterString[0] && (pItem->m_QuickSearchHit&IServerBrowser::QUICK_PLAYERNAME))
 					TextRender()->TextColor(0.4f,0.4f,1.0f,1);
