@@ -227,7 +227,12 @@ void CGameClient::OnConsoleInit()
 void CGameClient::OnInit()
 {
 	//m_pServerBrowser = Kernel()->RequestInterface<IServerBrowser>();
-	
+						  
+	// antiping
+	m_Average_Prediction_Offset = -1;
+	m_Prediction_Offset_Summ = 0;
+	m_Prediction_Offset_Count = 0;
+
 	// set the language
 	g_Localization.Load(g_Config.m_ClLanguagefile);
 	

@@ -132,7 +132,12 @@ public:
 		CCharacterInfo m_aCharacters[MAX_CLIENTS];
 	};
 
-	CSnapState m_Snap;
+	CSnapState m_Snap;	
+
+	// antiping
+	int m_Average_Prediction_Offset;
+	int m_Prediction_Offset_Summ;
+	int m_Prediction_Offset_Count;
 	
 	// client data
 	struct CClientData
@@ -153,7 +158,9 @@ public:
 		CTeeRenderInfo m_SkinInfo; // this is what the server reports
 		CTeeRenderInfo m_RenderInfo; // this is what we use
 		
-		float m_Angle;
+		float m_Angle;			  
+		
+		vec2 m_PreviousPrediction; // antiping
 		
 		void UpdateRenderInfo();
 	};
