@@ -306,9 +306,12 @@ void CHud::RenderHealthAndAmmo()
 	RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS].m_pSpriteProj);
 	IGraphics::CQuadItem Array[10];
 	int i;
-	for (i = 0; i < min(m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount, 10); i++)
-		Array[i] = IGraphics::CQuadItem(x+i*12,y+44,10,10);
-	Graphics()->QuadsDrawTL(Array, i);
+	if(g_Config.m_ClHudShowAmmo)
+	{
+		for (i = 0; i < min(m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount, 10); i++)
+			Array[i] = IGraphics::CQuadItem(x+i*12,y+44,10,10);
+		Graphics()->QuadsDrawTL(Array, i);
+	}
 	Graphics()->QuadsEnd();
 
 	Graphics()->QuadsBegin();
