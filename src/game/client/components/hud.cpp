@@ -269,12 +269,25 @@ void CHud::RenderHealthAndAmmo()
 	
 	// if weaponstage is active, put a "glow" around the stage ammo
 						 	
+	float vis;
 	for (int i = 0; i < 5; i++)
 	{
 		if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS == i)
-			Graphics()->SetColor(1,1,1,0.25f);
+			vis = 0.6f;	
 		else
-			Graphics()->SetColor(0,0,0,0.25f);
+			vis = 0.35f;
+		if (m_pClient->m_AmmoCount[i] >= 8 && m_pClient->m_AmmoCount[i] <= 10 || i == 0)	 
+			Graphics()->SetColor(0.5f,1.0f,0.65f,vis);
+		else if (m_pClient->m_AmmoCount[i] >= 6 && m_pClient->m_AmmoCount[i] <= 7)	 
+			Graphics()->SetColor(0.75f,1.0f,0.65f,vis);
+		else if (m_pClient->m_AmmoCount[i] >= 4 && m_pClient->m_AmmoCount[i] <= 5)	 
+			Graphics()->SetColor(0.85f,0.85f,0.65f,vis);
+		else if (m_pClient->m_AmmoCount[i] >= 2 && m_pClient->m_AmmoCount[i] <= 3)	 
+			Graphics()->SetColor(0.95f,0.45f,0.45f,vis);
+		else if (m_pClient->m_AmmoCount[i] >= 0 && m_pClient->m_AmmoCount[i] <= 1)	 
+			Graphics()->SetColor(0.95f,0.25f,0.25f,vis);
+		else					   
+			Graphics()->SetColor(0,0,0,vis);	
 		RenderTools()->DrawRoundRect(x-1+i*20+5*i, y+25, 20, 18, 2.0f);
 	}
 	
