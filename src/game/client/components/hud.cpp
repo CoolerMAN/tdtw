@@ -273,10 +273,10 @@ void CHud::RenderHealthAndAmmo()
 	for (int i = 0; i < 5; i++)
 	{
 		if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS == i)
-			vis = 0.6f;	
+			vis = 0.65f;	
 		else
-			vis = 0.35f;
-		if (m_pClient->m_AmmoCount[i] >= 8 && m_pClient->m_AmmoCount[i] <= 10 || i == 0)	 
+			vis = 0.30f;
+		if ((m_pClient->m_AmmoCount[i] >= 8 && m_pClient->m_AmmoCount[i] <= 10) || i == 0)	 
 			Graphics()->SetColor(0.5f,1.0f,0.65f,vis);
 		else if (m_pClient->m_AmmoCount[i] >= 6 && m_pClient->m_AmmoCount[i] <= 7)	 
 			Graphics()->SetColor(0.75f,1.0f,0.65f,vis);
