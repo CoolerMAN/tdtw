@@ -735,8 +735,8 @@ const char *CClient::ErrorString()
 
 void CClient::Render()
 {
-	if(g_Config.m_GfxClear)
-		Graphics()->Clear(1,1,0);
+	if(g_Config.m_GfxClear  || g_Config.m_GfxFullClear)
+		Graphics()->Clear(0.3f,0.3f,0.6f); // standart (1,1,0)
 
 	GameClient()->OnRender();
 	DebugRender();

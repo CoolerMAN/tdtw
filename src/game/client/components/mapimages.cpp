@@ -9,6 +9,17 @@
 CMapImages::CMapImages()
 {
 	m_Count = 0;
+	m_EntitiesTextures = -1;
+}
+
+int CMapImages::GetEntities()
+{
+	if(m_EntitiesTextures == -1)
+	{
+		m_EntitiesTextures = Graphics()->LoadTexture("editor/col_entities.png", CImageInfo::FORMAT_AUTO, 0); // load the clear entities
+
+	}
+	return m_EntitiesTextures;
 }
 
 void CMapImages::OnMapLoad()
@@ -22,6 +33,7 @@ void CMapImages::OnMapLoad()
 		m_aTextures[i] = -1;
 	}
 	m_Count = 0;
+	
 
 	int Start;
 	pMap->GetType(MAPITEMTYPE_IMAGE, &Start, &m_Count);

@@ -2,6 +2,7 @@
 #include <math.h>
 #include <base/math.h>
 #include <engine/graphics.h>
+#include <engine/shared/config.h>
 
 #include "render.h"
 
@@ -79,6 +80,8 @@ static void Rotate(CPoint *pCenter, CPoint *pPoint, float Rotation)
 
 void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, void (*pfnEval)(float TimeOffset, int Env, float *pChannels, void *pUser), void *pUser)
 {
+	if(g_Config.m_GfxFullClear)
+		return;
 	Graphics()->QuadsBegin();
 	float Conv = 1/255.0f;
 	for(int i = 0; i < NumQuads; i++)
