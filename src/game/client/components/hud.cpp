@@ -16,8 +16,6 @@
 #include "voting.h"
 #include "binds.h"
 
-static int weapons_ammo[5];
-
 CHud::CHud()
 {
 	// won't work if zero
@@ -342,31 +340,31 @@ void CHud::RenderHealthAndAmmo()
 	Graphics()->QuadsDrawTL(Array, i);
 	Graphics()->QuadsEnd();
 
-	weapons_ammo[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
+	m_pClient->m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
 	float w = TextRender()->TextWidth(0x0, 8, buf, -1);
 	for (int i = 1; i < 5; i++)
 	{
-		if (weapons_ammo[i] == -2)
+		if (m_pClient->m_AmmoCount[i] == -2)
 		{
 			str_format(buf, sizeof(buf), " ");
 			w = TextRender()->TextWidth(0x0, 8, buf, -1);
 			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
 		}
-		else if (weapons_ammo[i] == -1)
+		else if (m_pClient->m_AmmoCount[i] == -1)
 		{
 			str_format(buf, sizeof(buf), "inf");
 			w = TextRender()->TextWidth(0x0, 8, buf, -1);
 			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
 		}
-		else if (weapons_ammo[i] > 10)
+		else if (m_pClient->m_AmmoCount[i] > 10)
 		{
 			str_format(buf, sizeof(buf), "+10");
 			w = TextRender()->TextWidth(0x0, 8, buf, -1);
 			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
 		}
-		else if (weapons_ammo[i] >= 0 && weapons_ammo[i] <= 10)
+		else if (m_pClient->m_AmmoCount[i] >= 0 && m_pClient->m_AmmoCount[i] <= 10)
 		{
-			str_format(buf, sizeof(buf), "%d", weapons_ammo[i]);
+			str_format(buf, sizeof(buf), "%d", m_pClient->m_AmmoCount[i]);
 			w = TextRender()->TextWidth(0x0, 8, buf, -1);
 			TextRender()->Text(0, (x+39+(i-2)*20+(20-w)/2)+5*i, y+32, 8, buf, -1);
 		}
@@ -383,7 +381,7 @@ void CHud::OnRender()
 {
 	if(!m_pClient->m_Snap.m_pGameobj)
 	{
-		for (int i = 0; i < 5; i++) weapons_ammo[i] = -2;
+		for (int i = 0; i < 5; i++) m_pClient->m_AmmoCount[i] = -2;
 		return;
 	}
 		
@@ -395,7 +393,7 @@ void CHud::OnRender()
 	
 	if(m_pClient->m_Snap.m_pLocalCharacter && !Spectate && !(m_pClient->m_Snap.m_pGameobj && m_pClient->m_Snap.m_pGameobj->m_GameOver))
 		RenderHealthAndAmmo();
-	else for (int i = 0; i < 5; i++) weapons_ammo[i] = -2;
+	else for (int i = 0; i < 5; i++) m_pClient->m_AmmoCount[i] = -2;
 
 	RenderGameTimer();
 	RenderSuddenDeath();

@@ -89,6 +89,7 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
     if(Msg == NETMSGTYPE_SV_WEAPONPICKUP)
     {
     	CNetMsg_Sv_WeaponPickup *pMsg = (CNetMsg_Sv_WeaponPickup *)pRawMsg;
+	m_pClient->m_AmmoCount[pMsg->m_Weapon] = 10;
         if(g_Config.m_ClAutoswitchWeapons)
         	m_InputData.m_WantedWeapon = pMsg->m_Weapon+1;
     }

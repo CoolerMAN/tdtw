@@ -134,6 +134,7 @@ public:
 
 	CSnapState m_Snap;	
 
+	int m_AmmoCount[NUM_WEAPONS];
 	// antiping
 	int m_Average_Prediction_Offset;
 	int m_Prediction_Offset_Summ;
