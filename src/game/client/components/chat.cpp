@@ -224,7 +224,9 @@ void CChat::OnRender()
 	for(i = 0; i < MAX_LINES; i++)
 	{
 		int r = ((m_CurrentLine-i)+MAX_LINES)%MAX_LINES;
-		if(Now > m_aLines[r].m_Time+15*time_freq() && !m_Show)
+
+		int Timetoshow = g_Config.m_ClChatShowtime;
+		if(Now > m_aLines[r].m_Time+Timetoshow*time_freq() && !m_Show)
 			break;
 
 		float Begin = x;
@@ -239,7 +241,8 @@ void CChat::OnRender()
 		y -= Cursor.m_Y + Cursor.m_FontSize;
 
 		// cut off if msgs waste too much space
-		int HeightLimit = m_Show ? 0.0f : 200.0f;
+		float Limit = 300.0f - g_Config.m_ClChatHeightlimit;
+		int HeightLimit = m_Show ? 0.0f : Limit;
 		if(y < HeightLimit)
 			break;
 		
