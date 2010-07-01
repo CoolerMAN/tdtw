@@ -1913,6 +1913,11 @@ void CClient::Con_ServerDummy(IConsole::IResult *pResult, void *pUserData)
 	dbg_msg("client", "this command is not available on the client");
 }
 
+void CClient::Con_Gfc(IConsole::IResult *pResult, void *pUserData)
+{
+	 g_Config.m_GfxFullClear ^=1;
+}
+
 void CClient::RegisterCommands()
 {
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
@@ -1939,6 +1944,9 @@ void CClient::RegisterCommands()
 	m_pConsole->Register("play", "r", CFGFLAG_CLIENT, Con_Play, this, "Play the file specified");
 	m_pConsole->Register("record", "s", CFGFLAG_CLIENT, Con_Record, this, "Record to the file");
 	m_pConsole->Register("stoprecord", "", CFGFLAG_CLIENT, Con_StopRecord, this, "Stop recording");
+	
+	// ColTW
+	m_pConsole->Register("gfc", "", CFGFLAG_CLIENT, Con_Gfc, this, "Map viewer");
 
 	m_pConsole->Register("add_favorite", "s", CFGFLAG_CLIENT, Con_AddFavorite, this, "Add a server as a favorite");
 }

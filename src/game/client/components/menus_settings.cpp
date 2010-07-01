@@ -308,6 +308,7 @@ static CKeyInfo gs_aKeys[] =
 	{ "Remote console", "toggle_remote_console", 0 },
 	{ "Screenshot", "screenshot", 0 },
 	{ "Scoreboard", "+scoreboard", 0 },
+	{ "Show/hide tiles","gfc", 0},
 };
 
 /* This is for scripts/update_localization.py to work, please dont remove!
@@ -632,6 +633,48 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 	}
 }
 
+void CMenus::RenderColFeat(CUIRect MainView)
+{
+	CUIRect Button;
+	MainView.HSplitTop(20.0f, &Button, &MainView);
+	if(DoButton_CheckBox(&g_Config.m_AntiPing, Localize("Antiping"), g_Config.m_AntiPing, &Button))
+		g_Config.m_AntiPing ^= 1;
+}
+
+void CMenus::RenderColHud(CUIRect MainView)
+{
+	CUIRect Button;
+	MainView.HSplitTop(20.0f, &Button, &MainView);
+	// Show ammo settings
+	if(DoButton_CheckBox(&g_Config.m_ClHudShowAmmo, Localize("Show ammo line"), g_Config.m_ClHudShowAmmo, &Button))
+		g_Config.m_ClHudShowAmmo ^= 1;
+	MainView.HSplitTop(20.0f, &Button, &MainView);
+	// Map viewer settings		
+	MainView.HSplitTop(10.0f, 0, &MainView);
+	
+		// this is kinda slow, but whatever
+	for(int i = 0; i < g_KeyCount; i++)
+		gs_aKeys[i].m_KeyId = 0;
+
+	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	{
+		const char *pBind = m_pClient->m_pBinds->Get(KeyId);
+		if(!pBind[0])
+			continue;
+
+		for(int i = 0; i < g_KeyCount; i++)
+			if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
+			{
+				gs_aKeys[i].m_KeyId = KeyId;
+				break;
+			}
+	}
+	
+	
+	UiDoGetButtons(22, 23, MainView);
+}
+
+
 struct LANGUAGE
 {
 	LANGUAGE() {}
@@ -711,10 +754,12 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 void CMenus::RenderSettings(CUIRect MainView)
 {
 	static int s_SettingsPage = 0;
+	static int h_SettingsPage = 0;
 
 	// render background
-	CUIRect Temp, TabBar;
+	CUIRect Temp, TabBar, DownBar;
 	MainView.VSplitRight(120.0f, &MainView, &TabBar);
+	MainView.HSplitBottom(24.0f, &MainView, &DownBar);
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_B|CUI::CORNER_TL, 10.0f);
 	TabBar.HSplitTop(50.0f, &Temp, &TabBar);
 	RenderTools()->DrawUIRect(&Temp, ms_ColorTabbarActive, CUI::CORNER_R, 10.0f);
@@ -728,7 +773,8 @@ void CMenus::RenderSettings(CUIRect MainView)
 		Localize("Player"),
 		Localize("Controls"),
 		Localize("Graphics"),
-		Localize("Sound")};
+		Localize("Sound"),
+		Localize("ColTW")};
 
 	int NumTabs = (int)(sizeof(aTabs)/sizeof(*aTabs));
 
@@ -751,8 +797,39 @@ void CMenus::RenderSettings(CUIRect MainView)
 	else if(s_SettingsPage == 3)
 		RenderSettingsGraphics(MainView);
 	else if(s_SettingsPage == 4)
-		RenderSettingsSound(MainView);
+		RenderSettingsSound(MainView);	
+	else if(s_SettingsPage == 5)
+	{
+	const char *aTabs2[] = {
+		Localize("Features"),
+		Localize("Hud")/*
+		Localize("test3"),
+		Localize("test4"),
+		Localize("test5")*/};
 
+	int NumTabs = (int)(sizeof(aTabs2)/sizeof(*aTabs2));
+
+	for(int i = 0; i < NumTabs; i++)
+	{
+		DownBar.VSplitLeft(20, 0, &DownBar);
+		DownBar.VSplitLeft(100, &Button, &DownBar);
+		if(DoButton_ColSettingsTab(aTabs2[i], aTabs2[i], h_SettingsPage == i, &Button))
+			h_SettingsPage = i;
+	}
+
+	//MainView.Margin(10.0f, &MainView);
+
+	if(h_SettingsPage == 0)
+		RenderColFeat(MainView);
+	else if(h_SettingsPage == 1)
+		RenderColHud(MainView);
+	/*else if(h_SettingsPage == 2)
+		RenderColTest3(MainView);
+	else if(h_SettingsPage == 3)
+		RenderColTest4(MainView);
+	else if(h_SettingsPage == 4)
+		RenderColTest5(MainView);*/
+	}
 	if(m_NeedRestart)
 	{
 		CUIRect RestartWarning;

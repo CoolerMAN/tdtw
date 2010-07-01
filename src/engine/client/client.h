@@ -283,6 +283,9 @@ public:
 	static void Con_StopRecord(IConsole::IResult *pResult, void *pUserData);
 	static void Con_ServerDummy(IConsole::IResult *pResult, void *pUserData);
 
+	// ColTW
+	static void Con_Gfc(IConsole::IResult *pResult, void *pUserData);
+
 	void RegisterCommands();
 
 	const char *DemoPlayer_Play(const char *pFilename);

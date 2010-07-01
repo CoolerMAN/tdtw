@@ -48,11 +48,13 @@ MACRO_CONFIG_INT(UiColorLht, ui_color_lht, 175, 0, 255, CFGFLAG_CLIENT|CFGFLAG_S
 MACRO_CONFIG_INT(UiColorAlpha, ui_color_alpha, 228, 0, 255, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Interface alpha")
 
 MACRO_CONFIG_INT(GfxNoclip, gfx_noclip, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Disable clipping")
-// Added in ColTW
+// Added in ColTW //
 // Antiping
 MACRO_CONFIG_INT(AntiPing, cl_antiping, 0, 0, 2, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Antiping")
 // Hud
-MACRO_CONFIG_INT(ClHudShowAmmo, cl_hud_show_ammo, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ammo")
+MACRO_CONFIG_INT(ClHudShowAmmo, cl_hud_show_ammo, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ammo")
+// Map viewer
+MACRO_CONFIG_INT(GfxFullClear, gfx_full_clear, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Only show game tile")
 
 
 // server

@@ -37,6 +37,7 @@ class CMenus : public CComponent
 	int DoButton_Menu(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
 	int DoButton_MenuTab(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Corners);
 	int DoButton_SettingsTab(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
+	int DoButton_ColSettingsTab(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
 
 	int DoButton_CheckBox_Common(const void *pID, const char *pText, const char *pBoxText, const CUIRect *pRect);
 	int DoButton_CheckBox(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
@@ -200,6 +201,10 @@ class CMenus : public CComponent
 	void RenderSettingsGraphics(CUIRect MainView);
 	void RenderSettingsSound(CUIRect MainView);
 	void RenderSettings(CUIRect MainView);
+	
+	// ColTW Settings
+	void RenderColFeat(CUIRect MainView);
+	void RenderColHud(CUIRect MainView);
 	
 	void SetActive(bool Active);
 public:
