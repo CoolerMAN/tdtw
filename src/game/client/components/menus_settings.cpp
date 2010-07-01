@@ -309,7 +309,7 @@ static CKeyInfo gs_aKeys[] =
 	{ "Screenshot", "screenshot", 0 },
 	{ "Scoreboard", "+scoreboard", 0 },
 	{ "Map viewer on/off","gfc", 0},
-	{ "Toggle dynamic camera","dynamiccamera", 0},
+	{ "Dyn Camera","dynamiccamera", 0},
 };
 
 /* This is for scripts/update_localization.py to work, please dont remove!
@@ -328,7 +328,7 @@ void CMenus::UiDoGetButtons(int Start, int Stop, CUIRect View)
 		CKeyInfo &Key = gs_aKeys[i];
 		CUIRect Button, Label;
 		View.HSplitTop(20.0f, &Button, &View);
-		Button.VSplitLeft(180, &Label, &Button);
+		Button.VSplitLeft(130, &Label, &Button);
 
 		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "%s:", (const char *)Key.m_Name);
@@ -638,8 +638,8 @@ void CMenus::RenderColFeat(CUIRect MainView)
 {
 	CUIRect Button;
 	MainView.HSplitTop(20.0f, &Button, &MainView);
-	if(DoButton_CheckBox(&g_Config.m_AntiPing, Localize("Antiping"), g_Config.m_AntiPing, &Button))
-		g_Config.m_AntiPing ^= 1;
+	if(DoButton_CheckBox_Number(&g_Config.m_AntiPing, Localize("Antiping"), g_Config.m_AntiPing, &Button))
+		g_Config.m_AntiPing = (g_Config.m_AntiPing+1)%3;
 	MainView.HSplitTop(10.0f, 0, &MainView);
 	
 		// this is kinda slow, but whatever
@@ -670,9 +670,13 @@ void CMenus::RenderColHud(CUIRect MainView)
 	MainView.HSplitTop(20.0f, &Button, &MainView);
 	// Show ammo settings
 	if(DoButton_CheckBox(&g_Config.m_ClHudShowAmmo, Localize("Show ammo line"), g_Config.m_ClHudShowAmmo, &Button))
-		g_Config.m_ClHudShowAmmo ^= 1;
-	// Map viewer settings		
+		g_Config.m_ClHudShowAmmo ^= 1;	
+	MainView.HSplitTop(20.0f, &Button, &MainView);
+	// Notification weapons
+	if(DoButton_CheckBox(&g_Config.m_ClNotificationWeapon, Localize("Notification weapons"), g_Config.m_ClNotificationWeapon, &Button))
+		g_Config.m_ClNotificationWeapon ^= 1;
 	MainView.HSplitTop(10.0f, 0, &MainView);
+	// Map viewer settings	
 	
 		// this is kinda slow, but whatever
 	for(int i = 0; i < g_KeyCount; i++)
