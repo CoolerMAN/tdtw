@@ -160,10 +160,10 @@ int CMenus::DoButton_SettingsTab(const void *pID, const char *pText, int Checked
 
 int CMenus::DoButton_ColSettingsTab(const void *pID, const char *pText, int Checked, const CUIRect *pRect)
 {
-	if(Checked)
-		RenderTools()->DrawUIRect(pRect,  ms_ColorTabbarActive, CUI::CORNER_B, 10.0f);
+	if(!Checked)
+		RenderTools()->DrawUIRect(pRect,  vec4(0,0.5,0.5,0.5f)*ButtonColorMul(pID), CUI::CORNER_B, 10.0f);
 	else
-		RenderTools()->DrawUIRect(pRect, ms_ColorTabbarInactive, CUI::CORNER_B, 10.0f);
+		RenderTools()->DrawUIRect(pRect, vec4(1,1,1,0.5f)*ButtonColorMul(pID), CUI::CORNER_B, 10.0f);
 	UI()->DoLabel(pRect, pText, pRect->h*ms_FontmodHeight, 0);
 	return UI()->DoButtonLogic(pID, pText, Checked, pRect);
 }
