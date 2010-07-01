@@ -1,3 +1,5 @@
+TDTW copyright (c) 2010 CoolerMAN, DeRK
+
 Copyright (c) 2010 Magnus Auvinen
 
 
