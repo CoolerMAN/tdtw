@@ -60,7 +60,7 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 		str_format(aBuf, sizeof(aBuf), "%s:", Localize("Name"));
 		UI()->DoLabel(&Button, aBuf, 14.0, -1);
 		Button.VSplitLeft(80.0f, 0, &Button);
-		Button.VSplitLeft(180.0f, &Button, 0);
+		Button.VSplitLeft(170.0f, &Button, 0);
 		static float Offset = 0.0f;
 		if(DoEditBox(g_Config.m_PlayerName, &Button, g_Config.m_PlayerName, sizeof(g_Config.m_PlayerName), 14.0f, &Offset))
 			m_NeedSendinfo = true;
@@ -308,7 +308,8 @@ static CKeyInfo gs_aKeys[] =
 	{ "Remote console", "toggle_remote_console", 0 },
 	{ "Screenshot", "screenshot", 0 },
 	{ "Scoreboard", "+scoreboard", 0 },
-	{ "Show/hide tiles","gfc", 0},
+	{ "Map viewer on/off","gfc", 0},
+	{ "Toggle dynamic camera","dynamiccamera", 0},
 };
 
 /* This is for scripts/update_localization.py to work, please dont remove!
@@ -327,7 +328,7 @@ void CMenus::UiDoGetButtons(int Start, int Stop, CUIRect View)
 		CKeyInfo &Key = gs_aKeys[i];
 		CUIRect Button, Label;
 		View.HSplitTop(20.0f, &Button, &View);
-		Button.VSplitLeft(130.0f, &Label, &Button);
+		Button.VSplitLeft(180, &Label, &Button);
 
 		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "%s:", (const char *)Key.m_Name);
@@ -639,6 +640,28 @@ void CMenus::RenderColFeat(CUIRect MainView)
 	MainView.HSplitTop(20.0f, &Button, &MainView);
 	if(DoButton_CheckBox(&g_Config.m_AntiPing, Localize("Antiping"), g_Config.m_AntiPing, &Button))
 		g_Config.m_AntiPing ^= 1;
+	MainView.HSplitTop(10.0f, 0, &MainView);
+	
+		// this is kinda slow, but whatever
+	for(int i = 0; i < g_KeyCount; i++)
+		gs_aKeys[i].m_KeyId = 0;
+
+	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	{
+		const char *pBind = m_pClient->m_pBinds->Get(KeyId);
+		if(!pBind[0])
+			continue;
+
+		for(int i = 0; i < g_KeyCount; i++)
+			if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
+			{
+				gs_aKeys[i].m_KeyId = KeyId;
+				break;
+			}
+	}
+	
+	
+	UiDoGetButtons(23, 24, MainView);
 }
 
 void CMenus::RenderColHud(CUIRect MainView)
@@ -648,7 +671,6 @@ void CMenus::RenderColHud(CUIRect MainView)
 	// Show ammo settings
 	if(DoButton_CheckBox(&g_Config.m_ClHudShowAmmo, Localize("Show ammo line"), g_Config.m_ClHudShowAmmo, &Button))
 		g_Config.m_ClHudShowAmmo ^= 1;
-	MainView.HSplitTop(20.0f, &Button, &MainView);
 	// Map viewer settings		
 	MainView.HSplitTop(10.0f, 0, &MainView);
 	
