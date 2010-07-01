@@ -55,6 +55,9 @@ MACRO_CONFIG_INT(AntiPing, cl_antiping, 0, 0, 2, CFGFLAG_CLIENT|CFGFLAG_SAVE, "A
 MACRO_CONFIG_INT(ClHudShowAmmo, cl_hud_show_ammo, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ammo")
 // Notificaions
 MACRO_CONFIG_INT(ClNotificationWeapon, cl_notification_weapon, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Notify when weapon picked up")
+// Effects
+MACRO_CONFIG_INT(ClEffectsFlagtrail, cl_effects_flagtrail, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "FlagTrail")
+MACRO_CONFIG_INT(ClEffectsWeapontrail, cl_effects_weapontrail, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "WeaponTrail")
 // Map viewer
 MACRO_CONFIG_INT(GfxFullClear, gfx_full_clear, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Only show game tile")
 
