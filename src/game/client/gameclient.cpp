@@ -187,6 +187,8 @@ void CGameClient::OnConsoleInit()
 	// add the some console commands
 	Console()->Register("team", "i", CFGFLAG_CLIENT, ConTeam, this, "Switch team");
 	Console()->Register("kill", "", CFGFLAG_CLIENT, ConKill, this, "Kill yourself");
+	// ColTW
+	Console()->Register("dynamiccamera", "", CFGFLAG_CLIENT, ConCamera, this, "Toggle dynamic camera");
 	
 	// register server dummy commands for tab completion
 	Console()->Register("tune", "si", CFGFLAG_SERVER, ConServerDummy, 0, "Tune variable to value");
@@ -981,6 +983,22 @@ void CGameClient::ConTeam(IConsole::IResult *pResult, void *pUserData)
 void CGameClient::ConKill(IConsole::IResult *pResult, void *pUserData)
 {
 	((CGameClient*)pUserData)->SendKill(-1);
+}
+
+void CGameClient::ConCamera(IConsole::IResult *pResult, void *pUserData)
+{
+	if(g_Config.m_ClMouseDeadzone == 300 && g_Config.m_ClMouseFollowfactor == 60 && g_Config.m_ClMouseMaxDistance == 800)
+	{
+		g_Config.m_ClMouseDeadzone = 0;
+		g_Config.m_ClMouseMaxDistance = 400;
+		g_Config.m_ClMouseFollowfactor = 0;
+	}
+	else
+	{
+		g_Config.m_ClMouseDeadzone = 300;
+		g_Config.m_ClMouseMaxDistance = 800;
+		g_Config.m_ClMouseFollowfactor = 60;
+	} /*TODO: Changeable variables here*/
 }
 
 void CGameClient::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
