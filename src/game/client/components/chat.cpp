@@ -49,6 +49,11 @@ void CChat::ConSay(IConsole::IResult *pResult, void *pUserData)
 	((CChat*)pUserData)->Say(0, pResult->GetString(0));
 }
 
+void CChat::ConNotify(IConsole::IResult *pResult, void *pUserData)
+{
+	((CChat*)pUserData)->AddLine(-2, 0, pResult->GetString(0));
+}
+
 void CChat::ConSayTeam(IConsole::IResult *pResult, void *pUserData)
 {
 	((CChat*)pUserData)->Say(1, pResult->GetString(0));
@@ -73,6 +78,7 @@ void CChat::ConShowChat(IConsole::IResult *pResult, void *pUserData)
 void CChat::OnConsoleInit()
 {
 	Console()->Register("say", "r", CFGFLAG_CLIENT, ConSay, this, "Say in chat");
+	Console()->Register("Notify", "r", CFGFLAG_CLIENT, ConNotify, this, "Notify in chat");
 	Console()->Register("say_team", "r", CFGFLAG_CLIENT, ConSayTeam, this, "Say in team chat");
 	Console()->Register("chat", "s", CFGFLAG_CLIENT, ConChat, this, "Enable chat with all/team mode");
 	Console()->Register("+show_chat", "", CFGFLAG_CLIENT, ConShowChat, this, "Show chat");
@@ -143,7 +149,13 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine)
 		m_aLines[m_CurrentLine].m_Team = Team;
 		m_aLines[m_CurrentLine].m_NameColor = -2;
 
-		if(ClientId == -1) // server message
+		if(ClientId == -2) // client notification
+		{
+			TextRender()->TextColor(0.8f,1.0f,0.6f,1);
+			str_copy(m_aLines[m_CurrentLine].m_aName, "> ", sizeof(m_aLines[m_CurrentLine].m_aName));
+			str_format(m_aLines[m_CurrentLine].m_aText, sizeof(m_aLines[m_CurrentLine].m_aText), "%s", pLine);
+		}
+		else if(ClientId == -1) // server message
 		{
 			str_copy(m_aLines[m_CurrentLine].m_aName, "*** ", sizeof(m_aLines[m_CurrentLine].m_aName));
 			str_format(m_aLines[m_CurrentLine].m_aText, sizeof(m_aLines[m_CurrentLine].m_aText), "%s", pLine);
@@ -166,14 +178,15 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine)
 		}
 		
 		char aBuf[1024];
-		str_format(aBuf, sizeof(aBuf), "[chat]%s%s", m_aLines[m_CurrentLine].m_aName, m_aLines[m_CurrentLine].m_aText);
+		//if(ClientId == -2)
+			str_format(aBuf, sizeof(aBuf), "[chat]%s%s", m_aLines[m_CurrentLine].m_aName, m_aLines[m_CurrentLine].m_aText);
 		Console()->Print(aBuf);
 	}
 
 	// play sound
 	if(ClientId >= 0)
 		m_pClient->m_pSounds->Play(CSounds::CHN_GUI, SOUND_CHAT_CLIENT, 0, vec2(0,0));
-	else
+	else if(ClientId != -2)
 		m_pClient->m_pSounds->Play(CSounds::CHN_GUI, SOUND_CHAT_SERVER, 0, vec2(0,0));
 }
 
@@ -236,7 +249,9 @@ void CChat::OnRender()
 
 		// render name
 		TextRender()->TextColor(0.8f,0.8f,0.8f,1);
-		if(m_aLines[r].m_ClientId == -1)
+		if(m_aLines[r].m_ClientId == -2)
+			TextRender()->TextColor(0.8f,1.0f,0.6f,1); // client notify
+		else if(m_aLines[r].m_ClientId == -1)
 			TextRender()->TextColor(1,1.0f,0.5f,1); // system
 		else if(m_aLines[r].m_Team)
 			TextRender()->TextColor(0.45f,1.0f,0.45f,1); // team message
@@ -252,6 +267,8 @@ void CChat::OnRender()
 
 		// render line
 		TextRender()->TextColor(1,1,1,1);
+		if(m_aLines[r].m_ClientId == -2)
+			TextRender()->TextColor(0.8f,1,0.6f,1); // client notify
 		if(m_aLines[r].m_ClientId == -1)
 			TextRender()->TextColor(1,1,0.5f,1); // system
 		else if(m_aLines[r].m_Team)

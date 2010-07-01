@@ -92,7 +92,34 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 	m_pClient->m_AmmoCount[pMsg->m_Weapon] = 10;
         if(g_Config.m_ClAutoswitchWeapons)
         	m_InputData.m_WantedWeapon = pMsg->m_Weapon+1;
+	if(g_Config.m_ClNotificationWeapon)
+	{
+		char Buf[32];
+		switch(pMsg->m_Weapon)
+		{
+			case WEAPON_HAMMER:
+				str_format(Buf, sizeof(Buf), "You have got hammer");
+				break;
+			case WEAPON_GUN:
+				str_format(Buf, sizeof(Buf), "You have got pistol");
+				break;
+			case WEAPON_SHOTGUN:
+				str_format(Buf, sizeof(Buf), "You have got shotgun");
+				break;
+			case WEAPON_GRENADE:
+				str_format(Buf, sizeof(Buf), "You have got grenade launcher");
+				break;
+			case WEAPON_RIFLE:
+				str_format(Buf, sizeof(Buf), "You have got rifle gun");
+				break;
+			case WEAPON_NINJA:
+				str_format(Buf, sizeof(Buf), "You have got ninja");
+				break;
+		}
+		m_pClient->m_pChat->AddLine(-2,0,Buf);
     }
+	
+   }
 }
 
 int CControls::SnapInput(int *pData)
