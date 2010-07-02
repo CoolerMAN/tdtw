@@ -636,9 +636,11 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 
 void CMenus::RenderColFeat(CUIRect MainView)
 {
-	CUIRect Button, Antiping, Effects, Other;
+	CUIRect Button, Antiping, Effects, Other, Highlights, Left;
 	MainView.HSplitTop(250.0f, &MainView, &Other);
-	MainView.VSplitLeft(MainView.w/2-5.0f, &Antiping, &Effects);
+	MainView.VSplitLeft(MainView.w/2-5.0f, &Left, &Effects);
+	
+	Left.HSplitTop(100.0f, &Antiping, &Highlights);
 	
 	RenderTools()->DrawUIRect(&Antiping, vec4(1,1,1,0.25f), CUI::CORNER_TL, 10.0f);
 	Antiping.Margin(10.0f, &Antiping);
@@ -662,7 +664,23 @@ void CMenus::RenderColFeat(CUIRect MainView)
 			g_Config.m_AntiPing = 1;
 	}
 	
-	Effects.VSplitLeft(10, &Antiping, &Effects);
+	Highlights.HSplitTop(10.0f, 0, &Highlights);
+	RenderTools()->DrawUIRect(&Highlights, vec4(1,1,1,0.25f), 0, 10.0f);
+	Highlights.Margin(10.0f, &Highlights);
+	
+	TextRender()->Text(0, Highlights.x, Highlights.y-5, 18, Localize("Highlights in browser"), -1);
+	Highlights.HSplitTop(20.0f, 0, &Highlights);
+	Highlights.HSplitTop(20.0f, &Button, &Highlights);
+	if(DoButton_CheckBox(&g_Config.m_ClHighlightGametypes, Localize("Highlight for gametypes"), g_Config.m_ClHighlightGametypes, &Button))
+		g_Config.m_ClHighlightGametypes ^= 1;
+	Highlights.HSplitTop(20.0f, &Button, &Highlights);
+	if(DoButton_CheckBox(&g_Config.m_ClHighlightPlayer, Localize("Highlight for number of players"), g_Config.m_ClHighlightPlayer, &Button))
+		g_Config.m_ClHighlightPlayer ^= 1;
+	Highlights.HSplitTop(20.0f, &Button, &Highlights);
+	if(DoButton_CheckBox(&g_Config.m_ClHighlightPing, Localize("Highlight for ping"), g_Config.m_ClHighlightPing, &Button))
+		g_Config.m_ClHighlightPing ^= 1;
+	
+	Effects.VSplitLeft(10, &Left, &Effects);
 	RenderTools()->DrawUIRect(&Effects, vec4(1,1,1,0.25f), CUI::CORNER_TR, 10.0f);
 	Effects.Margin(10.0f, &Effects);
 	
@@ -709,19 +727,19 @@ void CMenus::RenderColHud(CUIRect MainView)
 	CUIRect Button, Top, Center, Left, Right, Bottom, Label;	
 	
 	MainView.HSplitTop(40.0f, &Top, &MainView);
-	RenderTools()->DrawUIRect(&Top, vec4(1,1,1,0.5f), CUI::CORNER_ALL, 10.0f);
+	RenderTools()->DrawUIRect(&Top, vec4(1,1,1,0.5f), CUI::CORNER_T, 10.0f);
 	Top.Margin(10.0f, &Top);
 	Top.HSplitTop(20.0f, &Button, &Top);	
 	if(DoButton_CheckBox(&g_Config.m_ClStandartHud, Localize("Standart hud and chat"), g_Config.m_ClStandartHud, &Button))
 		g_Config.m_ClStandartHud ^= 1;
 	
-	MainView.HSplitTop(20.0f, 0, &MainView);
+	MainView.HSplitTop(10.0f, 0, &MainView);
 	if(g_Config.m_ClStandartHud == 0)
 	{
 		MainView.HSplitTop(200.0f, &Center, &Bottom);
 		Center.VSplitLeft(Center.w/2-5.0f, &Left, &Right);
 		// Show ammo settings
-		RenderTools()->DrawUIRect(&Left, vec4(1,1,1,0.25f), CUI::CORNER_TL, 10.0f);
+		RenderTools()->DrawUIRect(&Left, vec4(1,1,1,0.25f), 0, 10.0f);
 		Left.Margin(10.0f, &Left);
 		TextRender()->Text(0, Left.x, Left.y-5, 18, Localize("Health, armor, weapon and ammo bar"), -1);
 		Left.HSplitTop(20.0f, 0, &Left);
@@ -730,12 +748,20 @@ void CMenus::RenderColHud(CUIRect MainView)
 		if(DoButton_CheckBox(&g_Config.m_ClHudShowWeapon, Localize("Show weapon bar"), g_Config.m_ClHudShowWeapon, &Button))
 			g_Config.m_ClHudShowWeapon ^= 1;	
 			
+		if(g_Config.m_ClHudShowWeapon == 1)
+		{
+			Left.HSplitTop(20.0f, &Button, &Left);
+			Button.VSplitLeft(15.0f, 0, &Button);	
+			if(DoButton_CheckBox(&g_Config.m_ClHighlightWeaponBar, Localize("Highlight weapon bar"), g_Config.m_ClHighlightWeaponBar, &Button))
+				g_Config.m_ClHighlightWeaponBar ^= 1;	
+		}
+			
 		Left.HSplitTop(20.0f, &Button, &Left);	
 		if(DoButton_CheckBox(&g_Config.m_ClHudShowAmmo, Localize("Show ammo bar"), g_Config.m_ClHudShowAmmo, &Button))
 			g_Config.m_ClHudShowAmmo ^= 1;	
 	
 		Right.VSplitLeft(10.0f, &Left, &Right);
-		RenderTools()->DrawUIRect(&Right, vec4(1,1,1,0.25f), CUI::CORNER_TR, 10.0f);
+		RenderTools()->DrawUIRect(&Right, vec4(1,1,1,0.25f), 0, 10.0f);
 		Right.Margin(10.0f, &Right);
 		TextRender()->Text(0, Right.x, Right.y-5, 18, Localize("Chat"), -1);
 		Right.HSplitTop(20.0f, 0, &Right);

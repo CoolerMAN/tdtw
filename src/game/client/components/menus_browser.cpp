@@ -321,20 +321,23 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 			}
 			else if(Id == COL_PLAYERS)
 			{
-				if(pItem->m_NumPlayers <= 3)
-					TextRender()->TextColor(0.5f,1,0.5f,1);		   
-				else if(pItem->m_NumPlayers <= 5)
-					TextRender()->TextColor(0.75f,1.0f,0.65f,1);
-				else if(pItem->m_NumPlayers <= 9)
-					TextRender()->TextColor(0.85f,1.0f,0.65f,1);  
-				else if(pItem->m_NumPlayers <= 11)
-					TextRender()->TextColor(0.95f,0.95f,0.65f,1);
-				else if(pItem->m_NumPlayers <= 13)
-					TextRender()->TextColor(0.95f,0.85f,0.65f,1);
-				else if(pItem->m_NumPlayers <= 15)
-					TextRender()->TextColor(0.95f,0.45f,0.45f,1);
-				else
-					TextRender()->TextColor(0.95f,0.25f,0.25f,1);
+				if(g_Config.m_ClHighlightPlayer == 1)
+				{
+					if(pItem->m_NumPlayers <= 3)
+						TextRender()->TextColor(0.5f,1,0.5f,1);		   
+					else if(pItem->m_NumPlayers <= 5)
+						TextRender()->TextColor(0.75f,1.0f,0.65f,1);
+					else if(pItem->m_NumPlayers <= 9)
+						TextRender()->TextColor(0.85f,1.0f,0.65f,1);  
+					else if(pItem->m_NumPlayers <= 11)
+						TextRender()->TextColor(0.95f,0.95f,0.65f,1);
+					else if(pItem->m_NumPlayers <= 13)
+						TextRender()->TextColor(0.95f,0.85f,0.65f,1);
+					else if(pItem->m_NumPlayers <= 15)
+						TextRender()->TextColor(0.95f,0.45f,0.45f,1);
+					else
+						TextRender()->TextColor(0.95f,0.25f,0.25f,1);
+				}
 				str_format(aTemp, sizeof(aTemp), "%i/%i", pItem->m_NumPlayers, pItem->m_MaxPlayers);
 				if(g_Config.m_BrFilterString[0] && (pItem->m_QuickSearchHit&IServerBrowser::QUICK_PLAYERNAME))
 					TextRender()->TextColor(0.4f,0.4f,1.0f,1);
@@ -343,16 +346,19 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 			}
 			else if(Id == COL_PING)
 			{
-				if(pItem->m_Latency <= 45)
-					TextRender()->TextColor(0.5f,1,0.5f,1);
-				else if(pItem->m_Latency <= 95)
-					TextRender()->TextColor(0.85f,1.0f,0.65f,1);
-				else if(pItem->m_Latency <= 110)
-					TextRender()->TextColor(0.95f,0.85f,0.65f,1);
-				else if(pItem->m_Latency <= 135)
-					TextRender()->TextColor(0.95f,0.45f,0.45f,1);
-				else
-					TextRender()->TextColor(0.95f,0.25f,0.25f,1);
+				if(g_Config.m_ClHighlightPing == 1)
+				{
+					if(pItem->m_Latency <= 45)
+						TextRender()->TextColor(0.5f,1,0.5f,1);
+					else if(pItem->m_Latency <= 95)
+						TextRender()->TextColor(0.85f,1.0f,0.65f,1);
+					else if(pItem->m_Latency <= 110)
+						TextRender()->TextColor(0.95f,0.85f,0.65f,1);
+					else if(pItem->m_Latency <= 135)
+						TextRender()->TextColor(0.95f,0.45f,0.45f,1);
+					else
+						TextRender()->TextColor(0.95f,0.25f,0.25f,1);
+				}
 				str_format(aTemp, sizeof(aTemp), "%i", pItem->m_Latency);
 				UI()->DoLabel(&Button, aTemp, 12.0f, 1);
 				TextRender()->TextColor(1,1,1,1);
@@ -369,12 +375,15 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 				CTextCursor Cursor;
 				TextRender()->SetCursor(&Cursor, Button.x, Button.y, 12.0f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
 				Cursor.m_LineWidth = Button.w;
-				if(	str_comp(pItem->m_aGameType, "DM") == 0 ||
-					str_comp(pItem->m_aGameType, "TDM") == 0 ||
-					str_comp(pItem->m_aGameType, "CTF") == 0)
-					TextRender()->TextColor(0.5f,1,0.5f,1);
-				else
-					TextRender()->TextColor(1,1,1,1);
+				if(g_Config.m_ClHighlightGametypes == 1)
+				{
+					if(	str_comp(pItem->m_aGameType, "DM") == 0 ||
+						str_comp(pItem->m_aGameType, "TDM") == 0 ||
+						str_comp(pItem->m_aGameType, "CTF") == 0)
+						TextRender()->TextColor(0.5f,1,0.5f,1);
+					else
+						TextRender()->TextColor(1,1,1,1);
+				}
 				TextRender()->TextEx(&Cursor, pItem->m_aGameType, -1);
 				TextRender()->TextColor(1,1,1,1);
 

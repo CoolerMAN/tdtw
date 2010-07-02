@@ -282,18 +282,27 @@ void CHud::RenderHealthAndAmmo()
 				vis = 0.65f;	
 			else
 				vis = 0.30f;
-			if ((m_pClient->m_AmmoCount[i] >= 8 && m_pClient->m_AmmoCount[i] <= 10) || i == 0)	 
-				Graphics()->SetColor(0.5f,1.0f,0.65f,vis);
-			else if (m_pClient->m_AmmoCount[i] >= 6 && m_pClient->m_AmmoCount[i] <= 7)	 
-				Graphics()->SetColor(0.75f,1.0f,0.65f,vis);
-			else if (m_pClient->m_AmmoCount[i] >= 4 && m_pClient->m_AmmoCount[i] <= 5)	 
-				Graphics()->SetColor(0.85f,0.85f,0.65f,vis);
-			else if (m_pClient->m_AmmoCount[i] >= 2 && m_pClient->m_AmmoCount[i] <= 3)	 
-				Graphics()->SetColor(0.95f,0.45f,0.45f,vis);
-			else if (m_pClient->m_AmmoCount[i] >= 0 && m_pClient->m_AmmoCount[i] <= 1)	 
-				Graphics()->SetColor(0.95f,0.25f,0.25f,vis);
-			else					   
-				Graphics()->SetColor(0,0,0,vis);	
+			if (g_Config.m_ClHighlightWeaponBar == 1)
+			{
+				if ((m_pClient->m_AmmoCount[i] >= 8 && m_pClient->m_AmmoCount[i] <= 10) || i == 0)	 
+					Graphics()->SetColor(0.5f,1.0f,0.65f,vis);
+				else if (m_pClient->m_AmmoCount[i] >= 6 && m_pClient->m_AmmoCount[i] <= 7)	 
+					Graphics()->SetColor(0.75f,1.0f,0.65f,vis);
+				else if (m_pClient->m_AmmoCount[i] >= 4 && m_pClient->m_AmmoCount[i] <= 5)	 
+					Graphics()->SetColor(0.85f,0.85f,0.65f,vis);
+				else if (m_pClient->m_AmmoCount[i] >= 2 && m_pClient->m_AmmoCount[i] <= 3)	 
+					Graphics()->SetColor(0.95f,0.45f,0.45f,vis);
+				else if (m_pClient->m_AmmoCount[i] >= 0 && m_pClient->m_AmmoCount[i] <= 1)	 
+					Graphics()->SetColor(0.95f,0.25f,0.25f,vis);
+				else					   
+					Graphics()->SetColor(0,0,0,vis);	
+			}
+			else if (m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS == i)	 
+				Graphics()->SetColor(1,1,1,0.25f);
+			else					 
+				Graphics()->SetColor(0,0,0,0.25f);
+			
+				
 			RenderTools()->DrawRoundRect(x-1+i*20+5*i, y+25, 20, 18, 2.0f);
 		}
 		
