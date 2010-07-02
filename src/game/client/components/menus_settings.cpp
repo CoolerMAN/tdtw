@@ -309,7 +309,7 @@ static CKeyInfo gs_aKeys[] =
 	{ "Screenshot", "screenshot", 0 },
 	{ "Scoreboard", "+scoreboard", 0 },
 	{ "Map viewer on/off","gfc", 0},
-	{ "Dyn Camera","dynamiccamera", 0},
+	{ "Dyn camera on/off","dynamiccamera", 0},
 };
 
 /* This is for scripts/update_localization.py to work, please dont remove!
@@ -636,11 +636,50 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 
 void CMenus::RenderColFeat(CUIRect MainView)
 {
-	CUIRect Button;
-	MainView.HSplitTop(20.0f, &Button, &MainView);
-	if(DoButton_CheckBox_Number(&g_Config.m_AntiPing, Localize("Antiping"), g_Config.m_AntiPing, &Button))
-		g_Config.m_AntiPing = (g_Config.m_AntiPing+1)%3;
-	MainView.HSplitTop(10.0f, 0, &MainView);
+	CUIRect Button, Antiping, Effects, Other;
+	MainView.HSplitTop(250.0f, &MainView, &Other);
+	MainView.VSplitLeft(MainView.w/2-5.0f, &Antiping, &Effects);
+	
+	RenderTools()->DrawUIRect(&Antiping, vec4(1,1,1,0.25f), CUI::CORNER_TL, 10.0f);
+	Antiping.Margin(10.0f, &Antiping);
+		
+	TextRender()->Text(0, Antiping.x, Antiping.y-5, 18, Localize("Antiping"), -1);
+	Antiping.HSplitTop(20.0f, 0, &Antiping);
+	Antiping.HSplitTop(20.0f, &Button, &Antiping);
+	
+	if(DoButton_CheckBox(&g_Config.m_AntiPing, Localize("Antiping"), g_Config.m_AntiPing, &Button))
+		g_Config.m_AntiPing = g_Config.m_AntiPing?0:1;
+	
+	if(g_Config.m_AntiPing == 1 || g_Config.m_AntiPing == 2)
+	{
+		Antiping.HSplitTop(20.0f, &Button, &Antiping);
+		Button.VSplitLeft(15.0f, 0, &Button);
+		if(DoButton_CheckBox(&g_Config.m_AntiPingGrenade, Localize("Antiping only grenade"), g_Config.m_AntiPingGrenade, &Button))
+			g_Config.m_AntiPingGrenade ^=1;
+		if(g_Config.m_AntiPingGrenade == 1)
+			g_Config.m_AntiPing = 2;
+		else
+			g_Config.m_AntiPing = 1;
+	}
+	
+	Effects.VSplitLeft(10, &Antiping, &Effects);
+	RenderTools()->DrawUIRect(&Effects, vec4(1,1,1,0.25f), CUI::CORNER_TR, 10.0f);
+	Effects.Margin(10.0f, &Effects);
+	
+	Other.HSplitTop(10.0f, &MainView, &Other);
+	RenderTools()->DrawUIRect(&Other, vec4(1,1,1,0.25f), CUI::CORNER_B, 10.0f);
+	Other.Margin(10.0f, &Other);
+			
+	TextRender()->Text(0, Effects.x, Effects.y-5, 18, Localize("Effects"), -1);
+	Effects.HSplitTop(20.0f, 0, &Effects);
+	Effects.HSplitTop(20.0f, &Button, &Effects);
+	if(DoButton_CheckBox(&g_Config.m_ClEffectsFlagtrail, Localize("FlagTrail"), g_Config.m_ClEffectsFlagtrail, &Button))
+		g_Config.m_ClEffectsFlagtrail ^= 1;	
+		
+	Effects.HSplitTop(20.0f, &Button, &Effects);	
+	if(DoButton_CheckBox(&g_Config.m_ClEffectsWeapontrail, Localize("WeaponTrail"), g_Config.m_ClEffectsWeapontrail, &Button))
+		g_Config.m_ClEffectsWeapontrail ^= 1;	
+		
 	
 		// this is kinda slow, but whatever
 	for(int i = 0; i < g_KeyCount; i++)
@@ -660,45 +699,86 @@ void CMenus::RenderColFeat(CUIRect MainView)
 			}
 	}
 	
-	
-	UiDoGetButtons(23, 24, MainView);
+	TextRender()->Text(0, Other.x, Other.y-5, 18, Localize("Other"), -1);
+	Other.HSplitTop(20.0f, 0, &Other);
+	UiDoGetButtons(22, 24, Other);
 }
 
 void CMenus::RenderColHud(CUIRect MainView)
 {
-	CUIRect Button;
-	MainView.HSplitTop(20.0f, &Button, &MainView);
-	// Show ammo settings
-	if(DoButton_CheckBox(&g_Config.m_ClHudShowAmmo, Localize("Show ammo line"), g_Config.m_ClHudShowAmmo, &Button))
-		g_Config.m_ClHudShowAmmo ^= 1;	
-	MainView.HSplitTop(20.0f, &Button, &MainView);
-	// Notification weapons
-	if(DoButton_CheckBox(&g_Config.m_ClNotificationWeapon, Localize("Notification weapons"), g_Config.m_ClNotificationWeapon, &Button))
-		g_Config.m_ClNotificationWeapon ^= 1;
-	MainView.HSplitTop(10.0f, 0, &MainView);
-	// Map viewer settings	
+	CUIRect Button, Top, Center, Left, Right, Bottom, Label;	
 	
-		// this is kinda slow, but whatever
-	for(int i = 0; i < g_KeyCount; i++)
-		gs_aKeys[i].m_KeyId = 0;
-
-	for(int KeyId = 0; KeyId < KEY_LAST; KeyId++)
+	MainView.HSplitTop(40.0f, &Top, &MainView);
+	RenderTools()->DrawUIRect(&Top, vec4(1,1,1,0.5f), CUI::CORNER_ALL, 10.0f);
+	Top.Margin(10.0f, &Top);
+	Top.HSplitTop(20.0f, &Button, &Top);	
+	if(DoButton_CheckBox(&g_Config.m_ClStandartHud, Localize("Standart hud and chat"), g_Config.m_ClStandartHud, &Button))
+		g_Config.m_ClStandartHud ^= 1;
+	
+	MainView.HSplitTop(20.0f, 0, &MainView);
+	if(g_Config.m_ClStandartHud == 0)
 	{
-		const char *pBind = m_pClient->m_pBinds->Get(KeyId);
-		if(!pBind[0])
-			continue;
+		MainView.HSplitTop(200.0f, &Center, &Bottom);
+		Center.VSplitLeft(Center.w/2-5.0f, &Left, &Right);
+		// Show ammo settings
+		RenderTools()->DrawUIRect(&Left, vec4(1,1,1,0.25f), CUI::CORNER_TL, 10.0f);
+		Left.Margin(10.0f, &Left);
+		TextRender()->Text(0, Left.x, Left.y-5, 18, Localize("Health, armor, weapon and ammo bar"), -1);
+		Left.HSplitTop(20.0f, 0, &Left);
+		
+		Left.HSplitTop(20.0f, &Button, &Left);	
+		if(DoButton_CheckBox(&g_Config.m_ClHudShowWeapon, Localize("Show weapon bar"), g_Config.m_ClHudShowWeapon, &Button))
+			g_Config.m_ClHudShowWeapon ^= 1;	
+			
+		Left.HSplitTop(20.0f, &Button, &Left);	
+		if(DoButton_CheckBox(&g_Config.m_ClHudShowAmmo, Localize("Show ammo bar"), g_Config.m_ClHudShowAmmo, &Button))
+			g_Config.m_ClHudShowAmmo ^= 1;	
+	
+		Right.VSplitLeft(10.0f, &Left, &Right);
+		RenderTools()->DrawUIRect(&Right, vec4(1,1,1,0.25f), CUI::CORNER_TR, 10.0f);
+		Right.Margin(10.0f, &Right);
+		TextRender()->Text(0, Right.x, Right.y-5, 18, Localize("Chat"), -1);
+		Right.HSplitTop(20.0f, 0, &Right);
+		
+		Right.HSplitTop(20.0f, &Button, &Right);
+		// Notification weapons
+		if(DoButton_CheckBox(&g_Config.m_ClNotificationWeapon, Localize("Notification weapons on pickup"), g_Config.m_ClNotificationWeapon, &Button))
+			g_Config.m_ClNotificationWeapon ^= 1;
 
-		for(int i = 0; i < g_KeyCount; i++)
-			if(str_comp(pBind, gs_aKeys[i].m_pCommand) == 0)
-			{
-				gs_aKeys[i].m_KeyId = KeyId;
-				break;
-			}
+		Right.HSplitTop(5.0f, &Button, &Right);
+		Right.HSplitTop(20.0f, &Button, &Right);
+		Button.VSplitLeft(110.0f, &Label, &Button);
+		Button.HMargin(2.0f, &Button);
+		UI()->DoLabel(&Label, Localize("Show time msg"), 14.0f, -1);
+		g_Config.m_ClChatShowtime = (int)(DoScrollbarH(&g_Config.m_ClChatShowtime, &Button, (g_Config.m_ClChatShowtime-5)/55.0f)*55.0f)+5;
+		
+		Right.HSplitTop(5.0f, &Button, &Right);
+		Right.HSplitTop(20.0f, &Button, &Right);
+		Button.VSplitLeft(110.0f, &Label, &Button);
+		Button.HMargin(2.0f, &Button);
+		UI()->DoLabel(&Label, Localize("Chat height"), 14.0f, -1);
+		g_Config.m_ClChatHeightlimit = (int)(DoScrollbarH(&g_Config.m_ClChatHeightlimit, &Button, (g_Config.m_ClChatHeightlimit-50)/250.0f)*250.0f)+50;
+		
+		Bottom.HSplitTop(10.0f, &Center, &Bottom);
 	}
+	else
+	{
+		g_Config.m_ClHudShowWeapon = 0;
+		g_Config.m_ClHudShowAmmo = 1;
+		g_Config.m_ClChatShowtime = 15;
+		g_Config.m_ClChatHeightlimit = 80;
+		g_Config.m_ClNotificationWeapon = 0;
+		
+		MainView.HSplitTop(0.0f, &Center, &Bottom);
+	}
+		
+	RenderTools()->DrawUIRect(&Bottom, vec4(1,1,1,0.25f), CUI::CORNER_B, 10.0f);
+	Bottom.Margin(10.0f, &Bottom);
+	TextRender()->Text(0, Bottom.x, Bottom.y-5, 18, Localize("Other"), -1);
+	Bottom.HSplitTop(20.0f, 0, &Bottom);
 	
-	
-	UiDoGetButtons(22, 23, MainView);
 }
+
 
 
 struct LANGUAGE
@@ -800,7 +880,7 @@ void CMenus::RenderSettings(CUIRect MainView)
 		Localize("Controls"),
 		Localize("Graphics"),
 		Localize("Sound"),
-		Localize("ColTW")};
+		Localize("TDTW")};
 
 	int NumTabs = (int)(sizeof(aTabs)/sizeof(*aTabs));
 

@@ -51,13 +51,16 @@ MACRO_CONFIG_INT(GfxNoclip, gfx_noclip, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "D
 // Added in ColTW //
 // Antiping
 MACRO_CONFIG_INT(AntiPing, cl_antiping, 0, 0, 2, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Antiping")
+MACRO_CONFIG_INT(AntiPingGrenade, cl_antiping_grenade, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Antiping")
 // Hud
+MACRO_CONFIG_INT(ClStandartHud, cl_standart_hud, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "standart hud")
 MACRO_CONFIG_INT(ClHudShowAmmo, cl_hud_show_ammo, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ammo")
+MACRO_CONFIG_INT(ClHudShowWeapon, cl_hud_show_weapon, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show weapon")
 // Notificaions
 MACRO_CONFIG_INT(ClNotificationWeapon, cl_notification_weapon, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Notify when weapon picked up")
 // Chat
 MACRO_CONFIG_INT(ClChatShowtime, cl_chat_showtime, 15, 5, 60, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Time to show message")
-MACRO_CONFIG_INT(ClChatHeightlimit, cl_chat_heightlimit, 200, 50, 300, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Chat height limit")
+MACRO_CONFIG_INT(ClChatHeightlimit, cl_chat_heightlimit, 80, 50, 300, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Chat height limit")
 // Effects
 MACRO_CONFIG_INT(ClEffectsFlagtrail, cl_effects_flagtrail, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "FlagTrail")
 MACRO_CONFIG_INT(ClEffectsWeapontrail, cl_effects_weapontrail, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "WeaponTrail")
