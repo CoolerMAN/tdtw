@@ -323,20 +323,20 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 			{
 				if(g_Config.m_ClHighlightPlayer == 1)
 				{
-					if(pItem->m_NumPlayers <= 3)
+					if(pItem->m_NumPlayers * 100.f / pItem->m_MaxPlayers <= 15.0f)
 						TextRender()->TextColor(0.5f,1,0.5f,1);		   
-					else if(pItem->m_NumPlayers <= 5)
-						TextRender()->TextColor(0.75f,1.0f,0.65f,1);
-					else if(pItem->m_NumPlayers <= 9)
-						TextRender()->TextColor(0.85f,1.0f,0.65f,1);  
-					else if(pItem->m_NumPlayers <= 11)
+					else if(pItem->m_NumPlayers * 100.f / pItem->m_MaxPlayers <= 25.0f)
+						TextRender()->TextColor(0.65f,1.0f,0.65f,1);
+					else if(pItem->m_NumPlayers * 100.f / pItem->m_MaxPlayers <= 45.0f)
+						TextRender()->TextColor(0.75f,1.0f,0.65f,1);  
+					else if(pItem->m_NumPlayers * 100.f / pItem->m_MaxPlayers <= 65.0f)
 						TextRender()->TextColor(0.95f,0.95f,0.65f,1);
-					else if(pItem->m_NumPlayers <= 13)
-						TextRender()->TextColor(0.95f,0.85f,0.65f,1);
-					else if(pItem->m_NumPlayers <= 15)
-						TextRender()->TextColor(0.95f,0.45f,0.45f,1);
-					else
+					else if(pItem->m_NumPlayers * 100.f / pItem->m_MaxPlayers <= 85.0f)
+						TextRender()->TextColor(0.95f,0.65f,0.65f,1);
+					else if(pItem->m_NumPlayers * 100.f / pItem->m_MaxPlayers <= 100.0f)
 						TextRender()->TextColor(0.95f,0.25f,0.25f,1);
+					else
+						TextRender()->TextColor(1,1,1,1);
 				}
 				str_format(aTemp, sizeof(aTemp), "%i/%i", pItem->m_NumPlayers, pItem->m_MaxPlayers);
 				if(g_Config.m_BrFilterString[0] && (pItem->m_QuickSearchHit&IServerBrowser::QUICK_PLAYERNAME))
