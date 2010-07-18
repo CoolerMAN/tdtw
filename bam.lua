@@ -108,8 +108,8 @@ client_depends = {}
 
 if family == "windows" then
 	table.insert(client_depends, CopyToDirectory(".", "other\\sdl\\vc2005libs\\SDL.dll"))
+	table.insert(client_depends, CopyToDirectory(".", "other\\freetype\\lib\\freetype240MT.dll"))
 end
-	
 
 if config.compiler.driver == "cl" then
 	client_link_other = {ResCompile("other/icons/teeworlds.rc")}
