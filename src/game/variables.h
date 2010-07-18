@@ -71,7 +71,8 @@ MACRO_CONFIG_INT(ClHighlightPlayer, cl_highlight_player, 1, 0, 1, CFGFLAG_SAVE|C
 MACRO_CONFIG_INT(ClHighlightPing, cl_highlight_ping, 1, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Highlight for ping")
 MACRO_CONFIG_INT(ClHighlightGametypes, cl_highlight_gametypes, 1, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Highlight for gametypes")
 MACRO_CONFIG_INT(ClHighlightWeaponBar, cl_highlight_weaponbar, 1, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Highlight for weapons bar")
-
+// Players
+MACRO_CONFIG_INT(ClShowGhost, cl_ghost, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show debug latency ghost")
 
 // server
 MACRO_CONFIG_INT(SvWarmup, sv_warmup, 0, 0, 0, CFGFLAG_SERVER, "Number of seconds to do warpup before round starts")
