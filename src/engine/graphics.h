@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_GRAPHICS_H
 #define ENGINE_GRAPHICS_H
 
@@ -75,10 +76,10 @@ public:
 	virtual void BlendAdditive() = 0;
 	virtual int MemoryUsage() const = 0;
 	
-	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename) =0;
+	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType) =0;
 	virtual int UnloadTexture(int Index) = 0;
 	virtual int LoadTextureRaw(int Width, int Height, int Format, const void *pData, int StoreFormat, int Flags) = 0;
-	virtual int LoadTexture(const char *pFilename, int StoreFormat, int Flags) = 0;
+	virtual int LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags) = 0;
 	virtual void TextureSet(int TextureID) = 0;
 	
 	struct CLineItem
@@ -126,7 +127,7 @@ public:
 	virtual void SetColorVertex(const CColorVertex *pArray, int Num) = 0;
 	virtual void SetColor(float r, float g, float b, float a) = 0;
 	
-	virtual void TakeScreenshot() = 0;
+	virtual void TakeScreenshot(const char *pFilename) = 0;
 	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes) = 0;
 
 	virtual void Swap() = 0;

@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/config.h>
 #include <engine/shared/config.h>
 #include "binds.h"
@@ -25,16 +26,18 @@ CBinds::CBinds()
 	m_SpecialBinds.m_pBinds = this;
 }
 
-void CBinds::Bind(int KeyId, const char *pStr)
+void CBinds::Bind(int KeyID, const char *pStr)
 {
-	if(KeyId < 0 || KeyId >= KEY_LAST)
+	if(KeyID < 0 || KeyID >= KEY_LAST)
 		return;
 		
-	str_copy(m_aaKeyBindings[KeyId], pStr, sizeof(m_aaKeyBindings[KeyId]));
-	if(!m_aaKeyBindings[KeyId][0])
-		dbg_msg("binds", "unbound %s (%d)", Input()->KeyName(KeyId), KeyId);
+	str_copy(m_aaKeyBindings[KeyID], pStr, sizeof(m_aaKeyBindings[KeyID]));
+	char aBuf[256];
+	if(!m_aaKeyBindings[KeyID][0])
+		str_format(aBuf, sizeof(aBuf), "unbound %s (%d)", Input()->KeyName(KeyID), KeyID);
 	else
-		dbg_msg("binds", "bound %s (%d) = %s", Input()->KeyName(KeyId), KeyId, m_aaKeyBindings[KeyId]);
+		str_format(aBuf, sizeof(aBuf), "bound %s (%d) = %s", Input()->KeyName(KeyID), KeyID, m_aaKeyBindings[KeyID]);
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "binds", aBuf);
 }
 
 
@@ -57,10 +60,10 @@ void CBinds::UnbindAll()
 		m_aaKeyBindings[i][0] = 0;
 }
 
-const char *CBinds::Get(int KeyId)
+const char *CBinds::Get(int KeyID)
 {
-	if(KeyId > 0 && KeyId < KEY_LAST)
-		return m_aaKeyBindings[KeyId];
+	if(KeyID > 0 && KeyID < KEY_LAST)
+		return m_aaKeyBindings[KeyID];
 	return "";
 }
 
@@ -133,11 +136,13 @@ void CBinds::ConBind(IConsole::IResult *pResult, void *pUserData)
 {
 	CBinds *pBinds = (CBinds *)pUserData;
 	const char *pKeyName = pResult->GetString(0);
-	int id = pBinds->GetKeyId(pKeyName);
+	int id = pBinds->GetKeyID(pKeyName);
 	
 	if(!id)
 	{
-		dbg_msg("binds", "key %s not found", pKeyName);
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "key %s not found", pKeyName);
+		pBinds->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "binds", aBuf);
 		return;
 	}
 	
@@ -149,11 +154,13 @@ void CBinds::ConUnbind(IConsole::IResult *pResult, void *pUserData)
 {
 	CBinds *pBinds = (CBinds *)pUserData;
 	const char *pKeyName = pResult->GetString(0);
-	int id = pBinds->GetKeyId(pKeyName);
+	int id = pBinds->GetKeyID(pKeyName);
 	
 	if(!id)
 	{
-		dbg_msg("binds", "key %s not found", pKeyName);
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "key %s not found", pKeyName);
+		pBinds->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "binds", aBuf);
 		return;
 	}
 	
@@ -176,12 +183,12 @@ void CBinds::ConDumpBinds(IConsole::IResult *pResult, void *pUserData)
 	{
 		if(pBinds->m_aaKeyBindings[i][0] == 0)
 			continue;
-		str_format(aBuf, sizeof(aBuf), "[binds] %s (%d) = %s", pBinds->Input()->KeyName(i), i, pBinds->m_aaKeyBindings[i]);
-		pBinds->Console()->Print(aBuf);
+		str_format(aBuf, sizeof(aBuf), "%s (%d) = %s", pBinds->Input()->KeyName(i), i, pBinds->m_aaKeyBindings[i]);
+		pBinds->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "binds", aBuf);
 	}
 }
 
-int CBinds::GetKeyId(const char *pKeyName)
+int CBinds::GetKeyID(const char *pKeyName)
 {
 	// check for numeric
 	if(pKeyName[0] == '&')

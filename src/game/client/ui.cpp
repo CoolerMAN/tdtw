@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/system.h>
 
 #include <engine/shared/config.h>
@@ -68,13 +69,18 @@ CUIRect *CUI::Screen()
 
 void CUI::SetScale(float s)
 {
-    //config.UI()->Scale = (int)(s*100.0f);
+    g_Config.m_UiScale = (int)(s*100.0f);
 }
 
-/*float CUI::Scale()
+float CUI::Scale()
 {
-    return config.UI()->Scale/100.0f;
-}*/
+	return g_Config.m_UiScale/100.0f; 
+}
+
+float CUIRect::Scale() const
+{
+	return g_Config.m_UiScale/100.0f; 
+}
 
 void CUI::ClipEnable(const CUIRect *r)
 {
@@ -137,6 +143,7 @@ void CUIRect::VSplitMid(CUIRect *pLeft, CUIRect *pRight) const
 {
     CUIRect r = *this;
     float Cut = r.w/2;
+//    Cut *= Scale();
 
     if (pLeft)
     {
@@ -308,21 +315,25 @@ int CUI::DoButton(const void *id, const char *text, int checked, const CUIRect *
     return ret;
 }*/
 
-void CUI::DoLabel(const CUIRect *r, const char *pText, float size, int Align, int MaxWidth)
+void CUI::DoLabel(const CUIRect *r, const char *pText, float Size, int Align, int MaxWidth)
 {
 	// TODO: FIX ME!!!!
     //Graphics()->BlendNormal();
-    size *= Scale();
     if(Align == 0)
     {
-    	float tw = TextRender()->TextWidth(0, size, pText, MaxWidth);
-    	TextRender()->Text(0, r->x + r->w/2-tw/2, r->y - size/10, size, pText, MaxWidth);
+    	float tw = TextRender()->TextWidth(0, Size, pText, MaxWidth);
+    	TextRender()->Text(0, r->x + r->w/2-tw/2, r->y - Size/10, Size, pText, MaxWidth);
 	}
 	else if(Align < 0)
-    	TextRender()->Text(0, r->x, r->y - size/10, size, pText, MaxWidth);
+    	TextRender()->Text(0, r->x, r->y - Size/10, Size, pText, MaxWidth);
 	else if(Align > 0)
 	{
-    	float tw = TextRender()->TextWidth(0, size, pText, MaxWidth);
-    	TextRender()->Text(0, r->x + r->w-tw, r->y - size/10, size, pText, MaxWidth);
+    	float tw = TextRender()->TextWidth(0, Size, pText, MaxWidth);
+    	TextRender()->Text(0, r->x + r->w-tw, r->y - Size/10, Size, pText, MaxWidth);
 	}
+}
+
+void CUI::DoLabelScaled(const CUIRect *r, const char *pText, float Size, int Align, int MaxWidth)
+{
+  DoLabel(r, pText, Size*Scale(), Align, MaxWidth);
 }

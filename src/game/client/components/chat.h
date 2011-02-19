@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_COMPONENTS_CHAT_H
 #define GAME_CLIENT_COMPONENTS_CHAT_H
 #include <game/client/component.h>
@@ -16,11 +17,13 @@ class CChat : public CComponent
 	struct CLine
 	{
 		int64 m_Time;
-		int m_ClientId;
+		float m_YOffset[2];
+		int m_ClientID;
 		int m_Team;
 		int m_NameColor;
 		char m_aName[64];
 		char m_aText[512];
+		bool m_Highlighted;
 	};
 
 	CLine m_aLines[MAX_LINES];
@@ -36,6 +39,13 @@ class CChat : public CComponent
 
 	int m_Mode;
 	bool m_Show;
+	bool m_InputUpdate;
+	int m_ChatStringOffset;
+	int m_OldChatStringLength;
+	int m_CompletionChosen;
+	char m_aCompletionBuffer[256];
+	int m_PlaceholderOffset;
+	int m_PlaceholderLength;
 	
 	static void ConSay(IConsole::IResult *pResult, void *pUserData);
 	static void ConNotify(IConsole::IResult *pResult, void *pUserData);
@@ -48,7 +58,7 @@ public:
 
 	bool IsActive() const { return m_Mode != MODE_NONE; }
 	
-	void AddLine(int ClientId, int Team, const char *pLine);
+	void AddLine(int ClientID, int Team, const char *pLine);
 	
 	void EnableMode(int Team);
 	
@@ -58,6 +68,7 @@ public:
 	virtual void OnConsoleInit();
 	virtual void OnStateChange(int NewState, int OldState);
 	virtual void OnRender();
+	virtual void OnRelease();
 	virtual void OnMessage(int MsgType, void *pRawMsg);
 	virtual bool OnInput(IInput::CEvent Event);
 };

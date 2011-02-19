@@ -4,9 +4,30 @@
 %d of %d servers, %d players
 == %d van %d Servers, %d spelers
 
+<<<<<<< HEAD
 %ds left
 == %ds over
 
+=======
+%d%% loaded
+== %d%% is geladen
+
+%ds left
+== %ds over
+
+%i minute left
+== nog %i minuut
+
+%i minutes left
+== nog %i minuten
+
+%i second left
+== nog %i seconde
+
+%i seconds left
+== nog %i seconden
+
+>>>>>>> mastertest/master
 %s Right click for context menu.
 == %s Rechtermuisknop voor context menu.
 
@@ -46,6 +67,9 @@ All
 Alpha
 == Alpha
 
+Alpha value of the envelope
+== Doorzichtbaarheid van de envelope
+
 Always show name plates
 == Altijd namen laten zien
 
@@ -58,23 +82,45 @@ Append
 Append map
 == Voeg kaart toe
 
+<<<<<<< HEAD
+=======
+Are you sure that you want to delete the demo?
+== Weet je zeker dat je de demo wil verwijderen?
+
+>>>>>>> mastertest/master
 Are you sure that you want to quit?
 == Weet je zeker dat je wil stoppen?
 
 As this is the first time you launch the game, please enter your nick name below. It's recommended that you check the settings to adjust them to your liking before joining a server.
 == Omdat dit de eerste keer is dat je het spel opstart, moet je een nicknaam kiezen. Doe dat hieronder. Het is aanbevolen om de instellingen te controleren, voordat je een spel start.
 
+Aspect ratio
+== Beeldverhouding
+
+Automatically record demos
+== Automatisch demo's opnemen
+
+Automatically take game over screenshot
+== Automatisch schermafbeeldingen nemen
+
 Blue team
-== Blauw
+== Blauwe team
 
 Blue team wins!
-== Blauw wint!
+== Blauwe team wint!
+
+Blue value of the envelope
+== Hoeveelheid blauw van de envelope
 
 Body
 == Lichaam
 
 Border
+<<<<<<< HEAD
 == Grens
+=======
+== Rand
+>>>>>>> mastertest/master
 
 CCW
 == CCW
@@ -91,12 +137,32 @@ Cancel
 Chat
 == Chat
 
+<<<<<<< HEAD
 Clear collision
 == Verwijder botsingen
+=======
+Clip H
+== Clip H
+
+Clip W
+== Clip B
+
+Clip X
+== Clip X
+
+Clip Y
+== Clip Y
+>>>>>>> mastertest/master
 
 Close
 == Sluiten
 
+<<<<<<< HEAD
+=======
+Color
+== Kleur
+
+>>>>>>> mastertest/master
 Color Env
 == Kleur Env
 
@@ -107,7 +173,7 @@ Color+
 == Kleur+
 
 Compatible version
-== Werkende versie
+== Samenwerkende versie
 
 Connect
 == Verbinden
@@ -149,7 +215,34 @@ Current version: %s
 == Huidige versie: %s
 
 Custom colors
-== Eigen kleuren
+== Aangepaste kleuren
+
+Decrease
+== Verkleinen
+
+Decrease animation speed
+== Verlaag animatiesnelheid
+
+Delete
+== Verwijder
+
+Delete demo
+== Verwijder demo
+
+Delete group
+== Verwijder groep
+
+Delete layer
+== Verwijder laag
+
+Delete this envelope
+== Verwijder deze envelope
+
+Deletes the current quad
+== Verwijdert de huidige quad
+
+Deletes the layer
+== Verwijdert de laag
 
 Decrease
 == Verkleinen
@@ -173,7 +266,10 @@ Deletes the layer
 == Verwijdert de laag
 
 Demos
-== Demos
+== Demo's
+
+Detail
+== Detail
 
 Detail
 == Detail
@@ -186,6 +282,9 @@ Disconnected
 
 Display Modes
 == Laat modes zien
+
+Down
+== Omlaag
 
 Downloading map
 == Kaart downloaden
@@ -206,7 +305,13 @@ Embeds the image into the map file.
 == Sluit een afbeelding in in het bestand van de kaart
 
 Emoticon
-== Emotie
+== Emoticon
+
+Enable/disable group for saving
+== Sla de group wel/niet op
+
+Enable/disable layer for saving
+== Sla de laag wel/niet op
 
 Enter
 == Starten
@@ -217,6 +322,15 @@ Envelopes
 Error
 == Fout
 
+<<<<<<< HEAD
+=======
+Error loading demo
+== Fout bij laden demo
+
+Exit
+== Afsluiten
+
+>>>>>>> mastertest/master
 Exits from the editor
 == Verlaat de editor
 
@@ -224,7 +338,7 @@ External
 == Extern
 
 FSAA samples
-== FSAA voorbeelden
+== FSAA samples
 
 Favorite
 == Favoriet
@@ -238,6 +352,12 @@ Feet
 File
 == Bestand
 
+<<<<<<< HEAD
+=======
+File: %s
+== Bestand: %s
+
+>>>>>>> mastertest/master
 Filename:
 == Bestandsnaam:
 
@@ -245,13 +365,16 @@ Filter
 == Filter
 
 Fire
-== Schiet
+== Schieten
+
+Folder
+== Map
 
 Force vote
 == Forceer stem
 
 Fullscreen
-== Volledig Scherm
+== Volledig scherm
 
 Game
 == Spel
@@ -266,13 +389,16 @@ Game type
 == Speltype
 
 Game types:
-== Speltypen:
+== Speltypes:
 
 General
 == Algemeen
 
 Graphics
 == Beeld
+
+Green value of the envelope
+== Hoeveelheid groen van de envelope
 
 Grenade
 == Granaat
@@ -287,7 +413,10 @@ Hammer
 == Hamer
 
 Has people playing
-== Er spelen mensen
+== Mensen in server
+
+Height
+== Hoogte
 
 Height
 == Hoogte
@@ -314,7 +443,11 @@ Increase
 == Vergroten
 
 Increase animation speed
+<<<<<<< HEAD
 == Vergroot animatie snelheid
+=======
+== Verhoog animatiesnelheid
+>>>>>>> mastertest/master
 
 Info
 == Info
@@ -322,14 +455,17 @@ Info
 Internet
 == Internet
 
+Invalid Demo
+== Ongeldige demo
+
 Join blue
-== Ga bij Blauw
+== Ga bij blauw
 
 Join game
 == Binnenkomen
 
 Join red
-== Ga bij Rood
+== Ga bij rood
 
 Jump
 == Springen
@@ -346,6 +482,7 @@ Language
 Layers
 == Lagen
 
+<<<<<<< HEAD
 Left mouse button to move. Hold shift to move pivot. Hold ctrl to rotate.
 == Linkermuisknop om te bewegen. Druk shift in om te roteren. Druk ctrl om te draaien.
 
@@ -354,36 +491,70 @@ Left mouse button to move. Hold shift to move the texture.
 
 Left mouse to drag. Hold shift to alter time point aswell. Right click to delete.
 == Linkermuisknop om te slepen. Druk shift in om het punt te veranderen. Rechtermuisknop om te verwijderen.
+=======
+Left
+== Links
+
+Left mouse button to move. Hold shift to move pivot. Hold ctrl to rotate.
+== Linkermuisknop om te bewegen. Houd shift ingedrukt om te roteren. Houd ctrl ingedrukt om te draaien.
+
+Left mouse button to move. Hold shift to move the texture.
+== Linkermuisknop om te bewegen. Houd shift ingedrukt om de textuur te bewegen
+
+Left mouse to drag. Hold ctrl to be more precise. Hold shift to alter time point aswell. Right click to delete.
+== Linkermuisknop om te slepen. Ctrl om precieser te zijn. Shift om tijdspunt ook te veranderen. Rechtsklik om te verwijderen.
+>>>>>>> mastertest/master
 
 Lht.
 == Licht
 
+<<<<<<< HEAD
 Load a new image to use in the map
 == Laad een nieuwe afbeelding om te gebruiken in de kaart
 
+=======
+Load
+== Laad
+
+Load a new image to use in the map
+== Laad een nieuwe afbeelding om te gebruiken in de kaart
+
+Load map
+== Laad kaart
+
+>>>>>>> mastertest/master
 Loading
 == Laden
 
 MOTD
 == MOTD
 
+<<<<<<< HEAD
 Make collision
 == Maak botsing
 
+=======
+>>>>>>> mastertest/master
 Make external
 == Maak extern
 
 Map
 == Kaart
 
+Max Screenshots
+== Maximaal aantal schermafbeeldingen
+
+Max demos
+== Maximaal aantal demo's
+
 Maximum ping:
-== Maximale Ping:
+== Hoogste ping:
 
 Miscellaneous
 == Diverse
 
 Mouse sens.
-== Muis gevoeligheid
+== Muis resolutie
 
 Move left
 == Naar links
@@ -395,17 +566,29 @@ Movement
 == Bewegen
 
 Mute when not active
-== Demp, waneer niet actief
+== Dempen wanneer inactief
 
 Name
 == Naam
 
+<<<<<<< HEAD
+=======
+Name plates size
+== Grootte naamplaat
+
+>>>>>>> mastertest/master
 Name:
 == Naam:
 
 New
 == Nieuw
 
+<<<<<<< HEAD
+=======
+New folder
+== Nieuwe map
+
+>>>>>>> mastertest/master
 News
 == Nieuws
 
@@ -425,7 +608,7 @@ No password
 == Geen wachtwoord
 
 No servers found
-== Geen server gevonden
+== Geen servers gevonden
 
 No servers match your filter criteria
 == Geen servers gevonden op zoekopdracht
@@ -434,7 +617,11 @@ None
 == Geen
 
 Normal animation speed
+<<<<<<< HEAD
 == Normale animatie snelheid
+=======
+== Normale animatiesnelheid
+>>>>>>> mastertest/master
 
 Ok
 == Oké
@@ -442,9 +629,12 @@ Ok
 Open
 == Open
 
+<<<<<<< HEAD
 Open map
 == Open kaart
 
+=======
+>>>>>>> mastertest/master
 Opens a map and adds everything from that map to the current one
 == Opent een kaart en voegt alles van die kaart toe aan de huidige
 
@@ -454,6 +644,18 @@ Opens a map for editing
 Order
 == Volgorde
 
+<<<<<<< HEAD
+=======
+Para X
+== Para X
+
+Para Y
+== Para Y
+
+Parent Folder
+== Bovenliggende map
+
+>>>>>>> mastertest/master
 Password
 == Wachtwoord
 
@@ -476,7 +678,25 @@ Players
 == Spelers
 
 Please balance teams!
-== Breng teams in balans!
+== Balanceer teams!
+
+Pos X
+== Pos X
+
+Pos Y
+== Pos Y
+
+Pos. Env
+== Pos. Env
+
+Pos. TO
+== Pos. TO
+
+Pos.+
+== Pos.+
+
+Press right mouse button to create a new point
+== Rechtermuisknop om een nieuw punt te maken
 
 Pos. Env
 == Pos. Env
@@ -499,6 +719,12 @@ Previous Envelope
 Proof
 == Test
 
+<<<<<<< HEAD
+=======
+Quads
+== Quads
+
+>>>>>>> mastertest/master
 Quality Textures
 == Structuurkwaliteit
 
@@ -506,7 +732,16 @@ Quick search:
 == Snel zoeken:
 
 Quit
-== Stoppen
+== Afsluiten
+
+REC
+== REC
+
+Reason:
+== Reden:
+
+Record demo
+== Neem demo op
 
 Red team
 == Rood
@@ -514,11 +749,21 @@ Red team
 Red team wins!
 == Rood wint!
 
+Red value of the envelope
+== Hoeveelheid rood van de envelope
+
+Refocus
+== Herfocus
+
 Refresh
 == Vernieuwen
 
 Refreshing master servers
+<<<<<<< HEAD
 == Hoofdserver vernieuwen
+=======
+== Masterservers vernieuwen
+>>>>>>> mastertest/master
 
 Remote console
 == Remote console
@@ -526,6 +771,7 @@ Remote console
 Remove
 == Verwijder
 
+<<<<<<< HEAD
 Removes collision from this layer
 == Verwijderd botsingen in deze laag
 
@@ -534,6 +780,13 @@ Removes the image from the map
 
 Removes the image from the map file.
 == Verwijderd de afbeelding uit de kaart.
+=======
+Removes the image from the map
+== Verwijdert de afbeelding uit de kaart
+
+Removes the image from the map file.
+== Verwijdert de afbeelding uit de kaart.
+>>>>>>> mastertest/master
 
 Replace
 == Vervang
@@ -548,16 +801,28 @@ Reset filter
 == Herstel filter
 
 Reset to defaults
-== Standaardinstelling
+== Standaardinstellingen
+
+Resizes the current Quad based on the aspect ratio of the image
+== Verkleint/vergroot de huidige quad gebaseerd op de verhouding van de afbeelding.
 
 Rifle
-== Geweer
+== Laser
+
+Right
+== Rechts
+
+Rotation of the brush in degrees. Use left mouse button to drag and change the value. Hold shift to be more precise.
+== Rotatie van de kwast in graden. Linkermuisknop om te slepen en de waarde te veranderen. Shift om meer precies te zijn.
+
+Rotation of the envelope
+== Rotatie van de envelope
 
 Round
 == Ronde
 
 Sample rate
-== Voorbeeld rate
+== Voorbeeldssnelheid
 
 Sat.
 == Verz.
@@ -590,7 +855,16 @@ Scoreboard
 == Scorebord
 
 Screenshot
-== Screenshot
+== Schermafbeelding
+
+Select group. Right click for properties.
+== Kies een groep. Rechtermuisknop voor eigenschappen.
+
+Select image
+== Selecteer afbeelding
+
+Select layer. Right click for properties.
+== Selecteer laag. Rechtermuisknop voor eigenschappen.
 
 Select group. Right click for properties.
 == Kies een groep. Rechtermuisknop voor eigenschappen.
@@ -613,8 +887,11 @@ Server not full
 Settings
 == Instellingen
 
+Shift
+== Shift
+
 Shotgun
-== Jachtgeweer
+== Geweer
 
 Show chat
 == Laat chat zien
@@ -623,7 +900,7 @@ Show name plates
 == Laat namen zien
 
 Show only supported
-== Laat alleen werkende servers zien
+== Laat alleen compatibele servers zien
 
 Skins
 == Skins
@@ -631,20 +908,30 @@ Skins
 Sound
 == Geluid
 
+Sound error
+== Geluidsfout
+
 Sound volume
 == Volume
 
 Spectate
-== Toeschouwer
+== Toekijken
 
 Spectators
 == Toeschouwers
 
 Square
+<<<<<<< HEAD
 == Vereffenen
 
 Squares the current quad
 == Vereffenen de huidige quad
+=======
+== Maak vierkant
+
+Squares the current quad
+== Maakt de huidige quad viekant
+>>>>>>> mastertest/master
 
 Standard gametype
 == Standaard speltype
@@ -652,17 +939,24 @@ Standard gametype
 Standard map
 == Standaard kaart
 
+Stop record
+== Stop met opnemen
+
 Sudden Death
 == Sudden Death
 
 Switch between images and layers managment.
+<<<<<<< HEAD
 == Wissel tussen afbeeldinglaag en beheerlaag.
+=======
+== Wissel tussen afbeeldingslaag en beheerlaag.
+>>>>>>> mastertest/master
 
 Switch curve type
 == Wissel bocht type
 
 Switch weapon on pickup
-== Verander wapen bij opakken
+== Verander wapen bij het oppakken
 
 Team
 == Team
@@ -671,17 +965,29 @@ Team chat
 == Team chat
 
 Teeworlds %s is out! Download it at www.teeworlds.com!
-== Teeworld %s is uit! Download het op www.teeworlds.com!
+== Teeworlds %s is uit! Download het op www.teeworlds.com!
 
 Texture Compression
-== Structuur verkleinen
+== Structuurscompressie
+
+The audio device couldn't be initialised.
+== Het geluid kon niet worden geladen.
 
 The server is running a non-standard tuning on a pure game type.
 == The server draait geen standaard spel type.
 
+Tiles
+== Tegels
+
 Time limit
 == Tijdlimiet
 
+<<<<<<< HEAD
+=======
+Time limit: %d min
+== Tijdslimiet: %d minuten
+
+>>>>>>> mastertest/master
 Toggle group visibility
 == Acitveer groepszichtbaarheid
 
@@ -697,8 +1003,28 @@ Try again
 UI Color
 == UI kleur
 
+<<<<<<< HEAD
 Use left mouse button to drag and create a brush.
 == Gebruik de linkermuisknop om de kwast te maken en te slepen.
+=======
+Unable to delete the demo
+== Demo kon niet worden verwijderd
+
+Up
+== Omhoog
+
+Use Clipping
+== Gebruik Clipping
+
+Use left mouse button to drag and change the color value. Hold shift to be more precise.
+== Linkermuisknop om te slepen en de kleur te veranderen. Shift om meer precies te zijn.
+
+Use left mouse button to drag and change the value. Hold shift to be more precise.
+== Linkermuisknop om te slepen en de waarde te veranderen. Shift om meer precies te zijn.
+
+Use left mouse button to drag and create a brush.
+== Gebruik de linkermuisknop om de kwast te maken en deze te slepen.
+>>>>>>> mastertest/master
 
 Use left mouse button to paint with the brush. Right button clears the brush.
 == Gebruik de linkermuisknop om de kwast te gebruiken. Rechtermuisknop maakt de kwast schoon.
@@ -713,10 +1039,10 @@ Version
 == Versie
 
 Vote no
-== No
+== Stem nee
 
 Vote yes
-== Ja
+== Stem ja
 
 Voting
 == Stemmen
@@ -733,6 +1059,15 @@ Welcome to Teeworlds
 Width
 == Breedte
 
+<<<<<<< HEAD
+=======
+X-axis of the envelope
+== X-as van de envelope
+
+Y-axis of the envelope
+== Y-as van de envelope
+
+>>>>>>> mastertest/master
 Yes
 == Ja
 
@@ -748,12 +1083,24 @@ ZI
 ZO
 == ZO
 
+<<<<<<< HEAD
 [M] Flip brush vertical
 == [M] Draai kwast verticaal
 
 [N] Flip brush horizontal
 == [N] Draai kwast horizontaal
 
+=======
+[HOME] Restore map focus
+== [HOME] Herstel kaart focus
+
+[M] Flip brush vertical
+== [M] Spiegel kwast verticaal
+
+[N] Flip brush horizontal
+== [N] Spiegel kwast horizontaal
+
+>>>>>>> mastertest/master
 [NumPad*] Zoom to normal and remove editor offset
 == [NumPad*] Zoom naar normaal en verwijder toevoegingen van de editor
 
@@ -771,6 +1118,7 @@ ZO
 
 [ctrl+h] Toggle High Detail
 == [ctrl+h] Activeer Details
+<<<<<<< HEAD
 
 [ctrl+m] Toggle animation
 == [ctrl+m] Activeer animaties
@@ -851,3 +1199,37 @@ Y-axis of the envelope
 
 ##### old translations ####
 
+=======
+
+[ctrl+m] Toggle animation
+== [ctrl+m] Activeer animaties
+
+[ctrl+p] Toggles proof borders. These borders represent what a player maximum can see.
+== [ctrl+p] Test grenzen. Deze grenzen laten zien wat een speler maximaal kan zien.
+
+no limit
+== ongelimiteerd
+
+##### needs translation #####
+
+Clear
+== 
+
+Collision
+== 
+
+Constructs game tiles from this layer
+== 
+
+Death
+== 
+
+Game tiles
+== 
+
+Unhookable
+== 
+
+##### old translations #####
+
+>>>>>>> mastertest/master

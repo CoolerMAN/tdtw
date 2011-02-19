@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "layers.h"
 
 CLayers::CLayers()
@@ -38,11 +39,15 @@ void CLayers::Init(class IKernel *pKernel)
 					m_pGameGroup->m_OffsetY = 0;
 					m_pGameGroup->m_ParallaxX = 100;
 					m_pGameGroup->m_ParallaxY = 100;
-					m_pGameGroup->m_UseClipping = 0;
-					m_pGameGroup->m_ClipX = 0;
-					m_pGameGroup->m_ClipY = 0;
-					m_pGameGroup->m_ClipW = 0;
-					m_pGameGroup->m_ClipH = 0;
+					
+					if(m_pGameGroup->m_Version >= 2)
+					{
+						m_pGameGroup->m_UseClipping = 0;
+						m_pGameGroup->m_ClipX = 0;
+						m_pGameGroup->m_ClipY = 0;
+						m_pGameGroup->m_ClipW = 0;
+						m_pGameGroup->m_ClipH = 0;
+					}
 
 					break;
 				}

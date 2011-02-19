@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <math.h>
 
 #include <base/math.h>
@@ -292,8 +293,8 @@ void CRenderTools::MapscreenToWorld(float CenterX, float CenterY, float Parallax
 	Height *= Zoom;
 	pPoints[0] = OffsetX+CenterX-Width/2;
 	pPoints[1] = OffsetY+CenterY-Height/2;
-	pPoints[2] = OffsetX+CenterX+Width/2;
-	pPoints[3] = OffsetY+CenterY+Height/2;
+	pPoints[2] = pPoints[0]+Width;
+	pPoints[3] = pPoints[1]+Height;
 }
 
 void CRenderTools::RenderTilemapGenerateSkip(class CLayers *pLayers)

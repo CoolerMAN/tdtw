@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SERVER_REGISTER_H
 #define ENGINE_SERVER_REGISTER_H
 
@@ -24,6 +25,7 @@ class CRegister
 
 	class CNetServer *m_pNetServer;
 	class IEngineMasterServer *m_pMasterServer;
+	class IConsole *m_pConsole;
 
 	int m_RegisterState;
 	int64 m_RegisterStateStart;
@@ -41,7 +43,7 @@ class CRegister
 
 public:
 	CRegister();
-	void Init(class CNetServer *pNetServer, class IEngineMasterServer *pMasterServer);
+	void Init(class CNetServer *pNetServer, class IEngineMasterServer *pMasterServer, class IConsole *pConsole);
 	void RegisterUpdate();
 	int RegisterProcessPacket(class CNetChunk *pPacket);
 };

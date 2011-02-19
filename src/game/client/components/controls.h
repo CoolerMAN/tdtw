@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_COMPONENTS_CONTROLS_H
 #define GAME_CLIENT_COMPONENTS_CONTROLS_H
 #include <base/vmath.h>
@@ -18,11 +19,14 @@ public:
 	CControls();
 	
 	virtual void OnReset();
+	virtual void OnRelease();
 	virtual void OnRender();
 	virtual void OnMessage(int MsgType, void *pRawMsg);
 	virtual bool OnMouseMove(float x, float y);
 	virtual void OnConsoleInit();
+	virtual void OnPlayerDeath();
 	
 	int SnapInput(int *pData);
+	void ClampMousePos();
 };
 #endif

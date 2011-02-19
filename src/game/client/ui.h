@@ -1,11 +1,12 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_UI_H
 #define GAME_CLIENT_UI_H
 
 class CUIRect
 {
 	// TODO: Refactor: Redo UI scaling
-	float Scale() const { return 1.0f; }
+	float Scale() const;
 public:
     float x, y, w, h;
 	
@@ -84,12 +85,13 @@ public:
 	
 	// TODO: Refactor: Redo UI scaling
 	void SetScale(float s);
-	float Scale() const { return 1.0f; }
+	float Scale();
 
 	int DoButtonLogic(const void *pID, const char *pText /* TODO: Refactor: Remove */, int Checked, const CUIRect *pRect);
 	
 	// TODO: Refactor: Remove this?
 	void DoLabel(const CUIRect *pRect, const char *pText, float Size, int Align, int MaxWidth = -1);
+	void DoLabelScaled(const CUIRect *pRect, const char *pText, float Size, int Align, int MaxWidth = -1);
 };
 
 

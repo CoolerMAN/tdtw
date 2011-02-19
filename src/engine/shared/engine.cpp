@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 
 #include <base/system.h>
 
@@ -61,6 +62,12 @@ void CEngine::Init(const char *pAppname)
 	//config_reset();
 }
 
+void CEngine::InitLogfile()
+{
+	// open logfile if needed
+	if(g_Config.m_Logfile[0])
+		dbg_logger_file(g_Config.m_Logfile);
+}
 
 static int HostLookupThread(void *pUser)
 {

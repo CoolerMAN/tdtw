@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SHARED_E_ENGINE_H
 #define ENGINE_SHARED_E_ENGINE_H
 
@@ -18,6 +19,7 @@ class CEngine
 
 public:
 	void Init(const char *pAppname);
+	void InitLogfile();
 	void HostLookup(CHostLookup *pLookup, const char *pHostname);
 };
 

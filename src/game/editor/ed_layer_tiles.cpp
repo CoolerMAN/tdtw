@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/math.h>
 
 #include <engine/graphics.h>
@@ -17,8 +18,12 @@ CLayerTiles::CLayerTiles(int w, int h)
 	m_Width = w;
 	m_Height = h;
 	m_Image = -1;
-	m_TexId = -1;
+	m_TexID = -1;
 	m_Game = 0;
+	m_Color.r = 255;
+	m_Color.g = 255;
+	m_Color.b = 255;
+	m_Color.a = 255;
 	
 	m_pTiles = new CTile[m_Width*m_Height];
 	mem_zero(m_pTiles, m_Width*m_Height*sizeof(CTile));
@@ -33,9 +38,9 @@ void CLayerTiles::PrepareForSave()
 {
 	for(int y = 0; y < m_Height; y++)
 		for(int x = 0; x < m_Width; x++)
-			m_pTiles[y*m_Width+x].m_Flags &= TILEFLAG_VFLIP|TILEFLAG_HFLIP;
+			m_pTiles[y*m_Width+x].m_Flags &= TILEFLAG_VFLIP|TILEFLAG_HFLIP|TILEFLAG_ROTATE;
 
-	if(m_Image != -1)
+	if(m_Image != -1 && m_Color.a == 255)
 	{
 		for(int y = 0; y < m_Height; y++)
 			for(int x = 0; x < m_Width; x++)
@@ -53,9 +58,10 @@ void CLayerTiles::MakePalette()
 void CLayerTiles::Render()
 {
 	if(m_Image >= 0 && m_Image < m_pEditor->m_Map.m_lImages.size())
-		m_TexId = m_pEditor->m_Map.m_lImages[m_Image]->m_TexId;
-	Graphics()->TextureSet(m_TexId);
-	m_pEditor->RenderTools()->RenderTilemap(m_pTiles, m_Width, m_Height, 32.0f, vec4(1,1,1,1), LAYERRENDERFLAG_OPAQUE|LAYERRENDERFLAG_TRANSPARENT);
+		m_TexID = m_pEditor->m_Map.m_lImages[m_Image]->m_TexID;
+	Graphics()->TextureSet(m_TexID);
+	vec4 Color = vec4(m_Color.r/255.0f, m_Color.g/255.0f, m_Color.b/255.0f, m_Color.a/255.0f);
+	m_pEditor->RenderTools()->RenderTilemap(m_pTiles, m_Width, m_Height, 32.0f, Color, LAYERRENDERFLAG_OPAQUE|LAYERRENDERFLAG_TRANSPARENT);
 }
 
 int CLayerTiles::ConvertX(float x) const { return (int)(x/32.0f); }
@@ -131,8 +137,9 @@ int CLayerTiles::BrushGrab(CLayerGroup *pBrush, CUIRect Rect)
 	// create new layers
 	CLayerTiles *pGrabbed = new CLayerTiles(r.w, r.h);
 	pGrabbed->m_pEditor = m_pEditor;
-	pGrabbed->m_TexId = m_TexId;
+	pGrabbed->m_TexID = m_TexID;
 	pGrabbed->m_Image = m_Image;
+	pGrabbed->m_Game = m_Game;
 	pBrush->AddLayer(pGrabbed);
 	
 	// copy the tiles
@@ -205,9 +212,10 @@ void CLayerTiles::BrushFlipX()
 			m_pTiles[y*m_Width+m_Width-1-x] = Tmp;
 		}
 
-	for(int y = 0; y < m_Height; y++)
-		for(int x = 0; x < m_Width; x++)
-			m_pTiles[y*m_Width+x].m_Flags ^= TILEFLAG_VFLIP;
+	if(!m_Game)
+		for(int y = 0; y < m_Height; y++)
+			for(int x = 0; x < m_Width; x++)
+				m_pTiles[y*m_Width+x].m_Flags ^= m_pTiles[y*m_Width+x].m_Flags&TILEFLAG_ROTATE ? TILEFLAG_HFLIP : TILEFLAG_VFLIP;
 }
 
 void CLayerTiles::BrushFlipY()
@@ -220,9 +228,47 @@ void CLayerTiles::BrushFlipY()
 			m_pTiles[(m_Height-1-y)*m_Width+x] = Tmp;
 		}
 
-	for(int y = 0; y < m_Height; y++)
-		for(int x = 0; x < m_Width; x++)
-			m_pTiles[y*m_Width+x].m_Flags ^= TILEFLAG_HFLIP;
+	if(!m_Game)
+		for(int y = 0; y < m_Height; y++)
+			for(int x = 0; x < m_Width; x++)
+				m_pTiles[y*m_Width+x].m_Flags ^= m_pTiles[y*m_Width+x].m_Flags&TILEFLAG_ROTATE ? TILEFLAG_VFLIP : TILEFLAG_HFLIP;
+}
+
+void CLayerTiles::BrushRotate(float Amount)
+{
+	int Rotation = (round(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
+	if(Rotation < 0)
+		Rotation +=4;
+
+	if(Rotation == 1 || Rotation == 3)
+	{
+		// 90° rotation
+		CTile *pTempData = new CTile[m_Width*m_Height];
+		mem_copy(pTempData, m_pTiles, m_Width*m_Height*sizeof(CTile));
+		CTile *pDst = m_pTiles;
+		for(int x = 0; x < m_Width; ++x)
+			for(int y = m_Height-1; y >= 0; --y, ++pDst)
+			{
+				*pDst = pTempData[y*m_Width+x];
+				if(!m_Game)
+				{
+					if(pDst->m_Flags&TILEFLAG_ROTATE)
+						pDst->m_Flags ^= (TILEFLAG_HFLIP|TILEFLAG_VFLIP);
+					pDst->m_Flags ^= TILEFLAG_ROTATE;
+				}
+			}
+
+		int Temp = m_Width;
+		m_Width = m_Height;
+		m_Height = Temp;
+		delete[] pTempData;
+	}
+
+	if(Rotation == 2 || Rotation == 3)
+	{
+		BrushFlipX();
+		BrushFlipY();
+	}
 }
 
 void CLayerTiles::Resize(int NewW, int NewH)
@@ -241,6 +287,39 @@ void CLayerTiles::Resize(int NewW, int NewH)
 	m_Height = NewH;
 }
 
+void CLayerTiles::Shift(int Direction)
+{
+	switch(Direction)
+	{
+	case 1:
+		{
+			// left
+			for(int y = 0; y < m_Height; ++y)
+				mem_move(&m_pTiles[y*m_Width], &m_pTiles[y*m_Width+1], (m_Width-1)*sizeof(CTile));
+		}
+		break;
+	case 2:
+		{
+			// right
+			for(int y = 0; y < m_Height; ++y)
+				mem_move(&m_pTiles[y*m_Width+1], &m_pTiles[y*m_Width], (m_Width-1)*sizeof(CTile));
+		}
+		break;
+	case 4:
+		{
+			// up
+			for(int y = 0; y < m_Height-1; ++y)
+				mem_copy(&m_pTiles[y*m_Width], &m_pTiles[(y+1)*m_Width], m_Width*sizeof(CTile));
+		}
+		break;
+	case 8:
+		{
+			// down
+			for(int y = m_Height-1; y > 0; --y)
+				mem_copy(&m_pTiles[y*m_Width], &m_pTiles[(y-1)*m_Width], m_Width*sizeof(CTile));
+		}
+	}
+}
 
 int CLayerTiles::RenderProperties(CUIRect *pToolBox)
 {
@@ -250,57 +329,58 @@ int CLayerTiles::RenderProperties(CUIRect *pToolBox)
 	bool InGameGroup = !find_linear(m_pEditor->m_Map.m_pGameGroup->m_lLayers.all(), this).empty();
 	if(m_pEditor->m_Map.m_pGameLayer == this)
 		InGameGroup = false;
-	static int s_ColclButton = 0;
-	if(m_pEditor->DoButton_Editor(&s_ColclButton, Localize("Clear collision"), InGameGroup?0:-1, &Button, 0, Localize("Removes collision from this layer")))
+
+	if(InGameGroup)
 	{
-		CLayerTiles *gl = m_pEditor->m_Map.m_pGameLayer;
-		int w = min(gl->m_Width, m_Width);
-		int h = min(gl->m_Height, m_Height);
-		for(int y = 0; y < h; y++)
-			for(int x = 0; x < w; x++)
-			{
-				if(gl->m_pTiles[y*gl->m_Width+x].m_Index <= TILE_SOLID)
-					if(m_pTiles[y*m_Width+x].m_Index)
-						gl->m_pTiles[y*gl->m_Width+x].m_Index = TILE_AIR;
-			}
-			
-		return 1;
-	}
-	static int s_ColButton = 0;
-	pToolBox->HSplitBottom(5.0f, pToolBox, &Button);
-	pToolBox->HSplitBottom(12.0f, pToolBox, &Button);
-	if(m_pEditor->DoButton_Editor(&s_ColButton, Localize("Make collision"), InGameGroup?0:-1, &Button, 0, Localize("Constructs collision from this layer")))
-	{
-		CLayerTiles *gl = m_pEditor->m_Map.m_pGameLayer;
-		int w = min(gl->m_Width, m_Width);
-		int h = min(gl->m_Height, m_Height);
-		for(int y = 0; y < h; y++)
-			for(int x = 0; x < w; x++)
-			{
-				if(gl->m_pTiles[y*gl->m_Width+x].m_Index <= TILE_SOLID)
-					gl->m_pTiles[y*gl->m_Width+x].m_Index = m_pTiles[y*m_Width+x].m_Index?TILE_SOLID:TILE_AIR;
-			}
-			
-		return 1;
+		static int s_ColclButton = 0;
+		if(m_pEditor->DoButton_Editor(&s_ColclButton, Localize("Game tiles"), 0, &Button, 0, Localize("Constructs game tiles from this layer")))
+			m_pEditor->PopupSelectGametileOpInvoke(m_pEditor->UI()->MouseX(), m_pEditor->UI()->MouseY());
+
+		int Result = m_pEditor->PopupSelectGameTileOpResult();
+		if(Result > -1)
+		{
+			CLayerTiles *gl = m_pEditor->m_Map.m_pGameLayer;
+			int w = min(gl->m_Width, m_Width);
+			int h = min(gl->m_Height, m_Height);
+			for(int y = 0; y < h; y++)
+				for(int x = 0; x < w; x++)
+					if(gl->m_pTiles[y*gl->m_Width+x].m_Index >= TILE_AIR && gl->m_pTiles[y*gl->m_Width+x].m_Index <= TILE_NOHOOK)
+						gl->m_pTiles[y*gl->m_Width+x].m_Index = m_pTiles[y*m_Width+x].m_Index?TILE_AIR+Result:TILE_AIR;
+
+			return 1;
+		}
 	}
 	
 	enum
 	{
 		PROP_WIDTH=0,
 		PROP_HEIGHT,
+		PROP_SHIFT,
 		PROP_IMAGE,
+		PROP_COLOR,
 		NUM_PROPS,
 	};
 	
+	int Color = 0;
+	Color |= m_Color.r<<24;
+	Color |= m_Color.g<<16;
+	Color |= m_Color.b<<8;
+	Color |= m_Color.a;
+	
 	CProperty aProps[] = {
-		{Localize("Width"), m_Width, PROPTYPE_INT_STEP, 1, 1000000000},
-		{Localize("Height"), m_Height, PROPTYPE_INT_STEP, 1, 1000000000},
+		{Localize("Width"), m_Width, PROPTYPE_INT_SCROLL, 1, 1000000000},
+		{Localize("Height"), m_Height, PROPTYPE_INT_SCROLL, 1, 1000000000},
+		{Localize("Shift"), 0, PROPTYPE_SHIFT, 0, 0},
 		{Localize("Image"), m_Image, PROPTYPE_IMAGE, 0, 0},
+		{Localize("Color"), Color, PROPTYPE_COLOR, 0, 0},
 		{0},
 	};
 	
-	if(m_pEditor->m_Map.m_pGameLayer == this) // remove the image from the selection if this is the game layer
-		aProps[2].m_pName = 0;
+	if(m_pEditor->m_Map.m_pGameLayer == this) // remove the image and color properties if this is the game layer
+	{
+		aProps[3].m_pName = 0;
+		aProps[4].m_pName = 0;
+	}
 	
 	static int s_aIds[NUM_PROPS] = {0};
 	int NewVal = 0;
@@ -310,15 +390,24 @@ int CLayerTiles::RenderProperties(CUIRect *pToolBox)
 		Resize(NewVal, m_Height);
 	else if(Prop == PROP_HEIGHT && NewVal > 1)
 		Resize(m_Width, NewVal);
+	else if(Prop == PROP_SHIFT)
+		Shift(NewVal);
 	else if(Prop == PROP_IMAGE)
 	{
 		if (NewVal == -1)
 		{
-			m_TexId = -1;
+			m_TexID = -1;
 			m_Image = -1;
 		}
 		else
 			m_Image = NewVal%m_pEditor->m_Map.m_lImages.size();
+	}
+	else if(Prop == PROP_COLOR)
+	{
+		m_Color.r = (NewVal>>24)&0xff;
+		m_Color.g = (NewVal>>16)&0xff;
+		m_Color.b = (NewVal>>8)&0xff;
+		m_Color.a = NewVal&0xff;
 	}
 	
 	return 0;

@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_LOCALIZATION_H
 #define GAME_LOCALIZATION_H
 #include <base/tl/string.h>
@@ -20,12 +21,13 @@ class CLocalizationDatabase
 	};
 
 	sorted_array<CString> m_Strings;
+	int m_VersionCounter;
 	int m_CurrentVersion;
 	
 public:
 	CLocalizationDatabase();
 
-	bool Load(const char *pFilename);
+	bool Load(const char *pFilename, class IStorage *pStorage, class IConsole *pConsole);
 
 	int Version() { return m_CurrentVersion; }
 	

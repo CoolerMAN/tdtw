@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/math.h>
 
 #include <engine/shared/config.h>
@@ -29,6 +30,16 @@ void CControls::OnReset()
 	
 	m_InputDirectionLeft = 0;
 	m_InputDirectionRight = 0;
+}
+
+void CControls::OnRelease()
+{
+	OnReset();
+}
+
+void CControls::OnPlayerDeath()
+{
+	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -219,10 +230,17 @@ void CControls::OnRender()
 
 bool CControls::OnMouseMove(float x, float y)
 {
-	if(m_pClient->m_Snap.m_pGameobj && m_pClient->m_Snap.m_pGameobj->m_Paused)
+	if((m_pClient->m_Snap.m_pGameobj && m_pClient->m_Snap.m_pGameobj->m_Paused) || (m_pClient->m_Snap.m_Spectate && m_pClient->m_pChat->IsActive()))
 		return false;
 	m_MousePos += vec2(x, y); // TODO: ugly
 
+	ClampMousePos();
+
+	return true;
+}
+
+void CControls::ClampMousePos()
+{
 	//
 	float CameraMaxDistance = 200.0f;
 	float FollowFactor = g_Config.m_ClMouseFollowfactor/100.0f;
@@ -254,6 +272,4 @@ bool CControls::OnMouseMove(float x, float y)
 		//if(l > 0.0001f) // make sure that this isn't 0
 			//camera_offset = normalize(mouse_pos)*offset_amount;
 	}
-	
-	return true;
 }

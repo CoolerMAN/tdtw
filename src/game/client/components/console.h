@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_COMPONENTS_CONSOLE_H
 #define GAME_CLIENT_COMPONENTS_CONSOLE_H
 #include <engine/shared/ringbuffer.h>
@@ -10,7 +11,12 @@ class CGameConsole : public CComponent
 	class CInstance
 	{
 	public:
-		TStaticRingBuffer<char, 64*1024, CRingBufferBase::FLAG_RECYCLE> m_Backlog;
+		struct CBacklogEntry
+		{
+			float m_YOffset;
+			char m_aText[1];
+		};
+		TStaticRingBuffer<CBacklogEntry, 64*1024, CRingBufferBase::FLAG_RECYCLE> m_Backlog;
 		TStaticRingBuffer<char, 64*1024, CRingBufferBase::FLAG_RECYCLE> m_History;
 		char *m_pHistoryEntry;
 
@@ -33,6 +39,7 @@ class CGameConsole : public CComponent
 		void Init(CGameConsole *pGameConsole);
 
 		void ClearBacklog();
+		void ClearHistory();
 
 		void ExecuteLine(const char *pLine);
 		
@@ -69,10 +76,17 @@ class CGameConsole : public CComponent
 	static void ConDumpRemoteConsole(IConsole::IResult *pResult, void *pUserData);
 	
 public:
+	enum
+	{
+		CONSOLETYPE_LOCAL=0,
+		CONSOLETYPE_REMOTE,
+	};
+
 	CGameConsole();
 
 	void PrintLine(int Type, const char *pLine);
 
+	virtual void OnStateChange(int NewState, int OldState);
 	virtual void OnConsoleInit();
 	virtual void OnReset();
 	virtual void OnRender();

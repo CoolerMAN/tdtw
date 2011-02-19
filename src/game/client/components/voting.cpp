@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/shared/config.h>
 
 #include <game/generated/protocol.h>
@@ -30,11 +31,14 @@ void CVoting::Callvote(const char *pType, const char *pValue)
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 }
 
-void CVoting::CallvoteKick(int ClientId)
+void CVoting::CallvoteKick(int ClientID, const char *pReason)
 {
-	char Buf[32];
-	str_format(Buf, sizeof(Buf), "%d", ClientId);
-	Callvote("kick", Buf);
+	char aBuf[32];
+	if(pReason[0])
+		str_format(aBuf, sizeof(aBuf), "%d %s", ClientID, pReason);
+	else
+		str_format(aBuf, sizeof(aBuf), "%d", ClientID);
+	Callvote("kick", aBuf);
 }
 
 void CVoting::CallvoteOption(int OptionId)
@@ -53,11 +57,14 @@ void CVoting::CallvoteOption(int OptionId)
 	}
 }
 
-void CVoting::ForcevoteKick(int ClientId)
+void CVoting::ForcevoteKick(int ClientID, const char *pReason)
 {
-	char Buf[32];
-	str_format(Buf, sizeof(Buf), "kick %d", ClientId);
-	Client()->Rcon(Buf);
+	char aBuf[32];
+	if(pReason[0])
+		str_format(aBuf, sizeof(aBuf), "kick %d %s", ClientID, pReason);
+	else
+		str_format(aBuf, sizeof(aBuf), "kick %d", ClientID);
+	Client()->Rcon(aBuf);
 }
 
 void CVoting::ForcevoteOption(int OptionId)

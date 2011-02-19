@@ -1,15 +1,24 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/system.h>
+#include <engine/console.h>
 #include <engine/shared/protocol.h>
 #include <engine/storage.h>
-#include "demorec.h"
+#include "demo.h"
 #include "memheap.h"
 #include "snapshot.h"
 #include "compression.h"
 #include "network.h"
 #include "engine.h"
 
-static const unsigned char gs_aHeaderMarker[8] = {'T', 'W', 'D', 'E', 'M', 'O', 0, 1};
+static const unsigned char gs_aHeaderMarker[7] = {'T', 'W', 'D', 'E', 'M', 'O', 0};
+static const unsigned char gs_ActVersion = 2;
+static const unsigned char gs_VersionWithMap = 2;
+
+//Versions :
+//1 : 0.5.0
+//2 : 0.5.3/0.6.0, includes the map
+
 
 CDemoRecorder::CDemoRecorder(class CSnapshotDelta *pSnapshotDelta)
 {
@@ -21,23 +30,48 @@ CDemoRecorder::CDemoRecorder(class CSnapshotDelta *pSnapshotDelta)
 //static IOHANDLE m_File = 0;
 
 // Record
-int CDemoRecorder::Start(class IStorage *pStorage, const char *pFilename, const char *pNetVersion, const char *pMap, int Crc, const char *pType)
+int CDemoRecorder::Start(class IStorage *pStorage, class IConsole *pConsole, const char *pFilename, const char *pNetVersion, const char *pMap, int Crc, const char *pType)
 {
 	CDemoHeader Header;
 	if(m_File)
 		return -1;
 
-	m_File = pStorage->OpenFile(pFilename, IOFLAG_WRITE);
-	
+	m_pConsole = pConsole;
+
+	// open mapfile
+	char aMapFilename[128];
+	// try the normal maps folder
+	str_format(aMapFilename, sizeof(aMapFilename), "maps/%s.map", pMap);
+	IOHANDLE MapFile = pStorage->OpenFile(aMapFilename, IOFLAG_READ, IStorage::TYPE_ALL);
+	if(!MapFile)
+	{
+		// try the downloaded maps
+		str_format(aMapFilename, sizeof(aMapFilename), "downloadedmaps/%s_%08x.map", pMap, Crc);
+		MapFile = pStorage->OpenFile(aMapFilename, IOFLAG_READ, IStorage::TYPE_ALL);
+	}
+	if(!MapFile)
+	{
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "Unable to open mapfile '%s'", pMap);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_recorder", aBuf);
+		return -1;
+	}
+
+	m_File = pStorage->OpenFile(pFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
 	if(!m_File)
 	{
-		dbg_msg("demorec/record", "Unable to open '%s' for recording", pFilename);
+		io_close(MapFile);
+		MapFile = 0;
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "Unable to open '%s' for recording", pFilename);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_recorder", aBuf);
 		return -1;
 	}
 	
 	// write header
 	mem_zero(&Header, sizeof(Header));
 	mem_copy(Header.m_aMarker, gs_aHeaderMarker, sizeof(Header.m_aMarker));
+	Header.m_Version = gs_ActVersion;
 	str_copy(Header.m_aNetversion, pNetVersion, sizeof(Header.m_aNetversion));
 	str_copy(Header.m_aMap, pMap, sizeof(Header.m_aMap));
 	str_copy(Header.m_aType, pType, sizeof(Header.m_aType));
@@ -47,10 +81,35 @@ int CDemoRecorder::Start(class IStorage *pStorage, const char *pFilename, const 
 	Header.m_aCrc[3] = (Crc)&0xff;
 	io_write(m_File, &Header, sizeof(Header));
 	
+	
+	// write map
+	// write map size
+	int MapSize = io_length(MapFile);
+	unsigned char aBufMapSize[4];
+	aBufMapSize[0] = (MapSize>>24)&0xff;
+	aBufMapSize[1] = (MapSize>>16)&0xff;
+	aBufMapSize[2] = (MapSize>>8)&0xff;
+	aBufMapSize[3] = (MapSize)&0xff;
+	io_write(m_File, &aBufMapSize, sizeof(aBufMapSize));
+		
+	// write map data
+	while(1)
+	{
+		unsigned char aChunk[1024*64];
+		int Bytes = io_read(MapFile, &aChunk, sizeof(aChunk));
+		if(Bytes <= 0)
+			break;
+		io_write(m_File, &aChunk, Bytes);
+	}
+	io_close(MapFile);
+	
 	m_LastKeyFrame = -1;
 	m_LastTickMarker = -1;
+	m_FirstTick = -1;
 	
-	dbg_msg("demorec/record", "Recording to '%s'", pFilename);
+	char aBuf[256];
+	str_format(aBuf, sizeof(aBuf), "Recording to '%s'", pFilename);
+	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_recorder", aBuf);
 	return 0;
 }
 
@@ -106,6 +165,8 @@ void CDemoRecorder::WriteTickMarker(int Tick, int Keyframe)
 	}	
 
 	m_LastTickMarker = Tick;
+	if(m_FirstTick < 0)
+		m_FirstTick = Tick;
 }
 
 void CDemoRecorder::Write(int Type, const void *pData, int Size)
@@ -194,7 +255,7 @@ int CDemoRecorder::Stop()
 	if(!m_File)
 		return -1;
 		
-	dbg_msg("demorec/record", "Stopped recording");
+	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_recorder", "Stopped recording");
 	io_close(m_File);
 	m_File = 0;
 	return 0;
@@ -349,8 +410,14 @@ void CDemoPlayer::DoTick()
 		if(ReadChunkHeader(&ChunkType, &ChunkSize, &ChunkTick))
 		{
 			// stop on error or eof
-			dbg_msg("demorec", "end of file");
-			Pause();
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "demo_player", "end of file");
+			if(m_Info.m_PreviousTick == -1)
+			{
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_player", "empty demo");
+				Stop();
+			}
+			else
+				Pause();
 			break;
 		}
 		
@@ -360,7 +427,7 @@ void CDemoPlayer::DoTick()
 			if(io_read(m_File, aCompresseddata, ChunkSize) != (unsigned)ChunkSize)
 			{
 				// stop on error or eof
-				dbg_msg("demorec", "error reading chunk");
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "demo_player", "error reading chunk");
 				Stop();
 				break;
 			}
@@ -369,7 +436,7 @@ void CDemoPlayer::DoTick()
 			if(DataSize < 0)
 			{
 				// stop on error or eof
-				dbg_msg("demorec", "error during network decompression");
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "demo_player", "error during network decompression");
 				Stop();
 				break;
 			}
@@ -378,7 +445,7 @@ void CDemoPlayer::DoTick()
 
 			if(DataSize < 0)
 			{
-				dbg_msg("demorec", "error during intpack decompression");
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "demo_player", "error during intpack decompression");
 				Stop();
 				break;
 			}
@@ -402,7 +469,11 @@ void CDemoPlayer::DoTick()
 				mem_copy(m_aLastSnapshotData, aNewsnap, DataSize);
 			}
 			else
-				dbg_msg("demorec", "error duing unpacking of delta, err=%d", DataSize);
+			{
+				char aBuf[256];
+				str_format(aBuf, sizeof(aBuf), "error during unpacking of delta, err=%d", DataSize);
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "demo_player", aBuf);
+			}
 		}
 		else if(ChunkType == CHUNKTYPE_SNAPSHOT)
 		{
@@ -453,15 +524,21 @@ void CDemoPlayer::Unpause()
 	}
 }
 
-int CDemoPlayer::Load(class IStorage *pStorage, const char *pFilename)
+int CDemoPlayer::Load(class IStorage *pStorage, class IConsole *pConsole, const char *pFilename, int StorageType)
 {
-	m_File = pStorage->OpenFile(pFilename, IOFLAG_READ);
+	m_pConsole = pConsole;
+	m_File = pStorage->OpenFile(pFilename, IOFLAG_READ, StorageType);
 	if(!m_File)
 	{
-		dbg_msg("demorec/playback", "could not open '%s'", pFilename);
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "could not open '%s'", pFilename);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_player", aBuf);
 		return -1;
 	}
 	
+	// store the filename
+	str_copy(m_aFilename, pFilename, sizeof(m_aFilename));
+
 	// clear the playback info
 	mem_zero(&m_Info, sizeof(m_Info));
 	m_Info.m_Info.m_FirstTick = -1;
@@ -478,11 +555,51 @@ int CDemoPlayer::Load(class IStorage *pStorage, const char *pFilename)
 	io_read(m_File, &m_Info.m_Header, sizeof(m_Info.m_Header));
 	if(mem_comp(m_Info.m_Header.m_aMarker, gs_aHeaderMarker, sizeof(gs_aHeaderMarker)) != 0)
 	{
-		dbg_msg("demorec/playback", "'%s' is not a demo file", pFilename);
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "'%s' is not a demo file", pFilename);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_player", aBuf);
 		io_close(m_File);
 		m_File = 0;
 		return -1;
 	}
+	
+	
+	// get map
+	if(m_Info.m_Header.m_Version >= gs_VersionWithMap)
+	{
+		// get map size
+		unsigned char aBufMapSize[4];
+		io_read(m_File, &aBufMapSize, sizeof(aBufMapSize));
+		int MapSize = (aBufMapSize[0]<<24) | (aBufMapSize[1]<<16) | (aBufMapSize[2]<<8) | (aBufMapSize[3]);
+		
+		// check if we already have the map
+		// TODO: improve map checking (maps folder, check crc)
+		int Crc = (m_Info.m_Header.m_aCrc[0]<<24) | (m_Info.m_Header.m_aCrc[1]<<16) | (m_Info.m_Header.m_aCrc[2]<<8) | (m_Info.m_Header.m_aCrc[3]);
+		char aMapFilename[128];
+		str_format(aMapFilename, sizeof(aMapFilename), "downloadedmaps/%s_%08x.map", m_Info.m_Header.m_aMap, Crc);
+		IOHANDLE MapFile = pStorage->OpenFile(aMapFilename, IOFLAG_READ, IStorage::TYPE_ALL);
+		
+		if(MapFile)
+		{
+			io_skip(m_File, MapSize);
+			io_close(MapFile);
+		}
+		else if(MapSize > 0)
+		{
+			// get map data
+			unsigned char *pMapData = (unsigned char *)mem_alloc(MapSize, 1);
+			io_read(m_File, pMapData, MapSize);
+			
+			// save map
+			MapFile = pStorage->OpenFile(aMapFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
+			io_write(MapFile, pMapData, MapSize);
+			io_close(MapFile);
+			
+			// free data
+			mem_free(pMapData);
+		}
+	}
+	
 	
 	// scan the file for interessting points
 	ScanFile();
@@ -600,8 +717,10 @@ int CDemoPlayer::Update()
 		if(m_Info.m_Info.m_CurrentTick == m_Info.m_PreviousTick ||
 			m_Info.m_Info.m_CurrentTick == m_Info.m_NextTick)
 		{
-			dbg_msg("demorec/playback", "tick error prev=%d cur=%d next=%d",
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "tick error prev=%d cur=%d next=%d",
 				m_Info.m_PreviousTick, m_Info.m_Info.m_CurrentTick, m_Info.m_NextTick);
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "demo_player", aBuf);
 		}
 	}
 	
@@ -613,12 +732,43 @@ int CDemoPlayer::Stop()
 	if(!m_File)
 		return -1;
 		
-	dbg_msg("demorec/playback", "Stopped playback");
+	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "demo_player", "Stopped playback");
 	io_close(m_File);
 	m_File = 0;
 	mem_free(m_pKeyFrames);
 	m_pKeyFrames = 0;
+	str_copy(m_aFilename, "", sizeof(m_aFilename));
 	return 0;
 }
 
+char *CDemoPlayer::GetDemoName()
+{
+	// get the name of the demo without its path
+	char *pDemoShortName = &m_aFilename[0];
+	for(int i = 0; i < str_length(m_aFilename)-1; i++)
+	{
+		if(m_aFilename[i] == '/' || m_aFilename[i] == '\\')
+			pDemoShortName = &m_aFilename[i+1];
+	}
+	return pDemoShortName;
+}
 
+bool CDemoPlayer::GetDemoInfo(class IStorage *pStorage, const char *pFilename, int StorageType, char *pMap, int BufferSize) const
+{
+	IOHANDLE File = pStorage->OpenFile(pFilename, IOFLAG_READ, StorageType);
+	if(!File)
+		return false;
+	
+	CDemoHeader Header;
+	io_read(File, &Header, sizeof(Header));
+	if(mem_comp(Header.m_aMarker, gs_aHeaderMarker, sizeof(gs_aHeaderMarker)) != 0)
+	{
+		io_close(File);
+		return false;
+	}
+	
+	str_copy(pMap, Header.m_aMap, BufferSize);
+	
+	io_close(File);
+	return true;
+}

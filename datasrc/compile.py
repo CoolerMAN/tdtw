@@ -25,9 +25,9 @@ def create_flags_table(names):
 def EmitEnum(names, num):
 	print("enum")
 	print("{")
-	print("\t%s=0,"%names[0])
+	print("\t%s=0," % names[0])
 	for name in names[1:]:
-		print("\t%s,"%name)
+		print("\t%s," % name)
 	print("\t%s" % num)
 	print("};")
 
@@ -39,7 +39,6 @@ def EmitFlags(names, num):
 		print("\t%s = 1<<%d," % (name,i))
 		i += 1
 	print("};")
-		
 
 gen_network_header = False
 gen_network_source = False
@@ -66,18 +65,18 @@ if gen_server_content_header:
 
 if gen_client_content_header or gen_server_content_header:
 	# emit the type declarations
-	contentlines = open("datasrc/content.py").readlines()
+	contentlines = open("datasrc/content.py", "rb").readlines()
 	order = []
 	for line in contentlines:
 		line = line.strip()
-		if line[:6] == "class " and '(Struct)' in line:
-			order += [line.split()[1].split("(")[0]]
+		if line[:6] == "class ".encode() and "(Struct)".encode() in line:
+			order += [line.split()[1].split("(".encode())[0].decode("ascii")]
 	for name in order:
 		EmitTypeDeclaration(content.__dict__[name])
-		
+
 	# the container pointer
 	print('extern DATACONTAINER *g_pData;')
-	
+
 	# enums
 	EmitEnum(["IMAGE_%s"%i.name.value.upper() for i in content.container.images.items], "NUM_IMAGES")
 	EmitEnum(["ANIM_%s"%i.name.value.upper() for i in content.container.animations.items], "NUM_ANIMS")

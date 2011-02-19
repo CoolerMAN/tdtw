@@ -4,8 +4,8 @@
 %d of %d servers, %d players
 == %d de %d servidores, %d jogadores
 
-%s Right click for context menu.
-== %s Right click for context menu.
+%ds left
+== faltam %ds
 
 Abort
 == Cancelar
@@ -22,11 +22,11 @@ Alpha
 Always show name plates
 == Sempre mostrar apelidos
 
-Anim
-== Anim
-
 Are you sure that you want to quit?
 == Você tem certeza que deseja sair?
+
+As this is the first time you launch the game, please enter your nick name below. It's recommended that you check the settings to adjust them to your liking before joining a server.
+== Como esta é a primeira vez que você abriu o jogo, por favor, entre com seu apelido abaixo. É recomendado que você cheque suas configurações e então ajuste elas para suas preferências antes de entrar em um servidor.
 
 Blue team
 == Time azul
@@ -55,6 +55,9 @@ Connect
 Connecting to
 == Conectando a
 
+Connection Problems...
+== Problemas de Conexão...
+
 Console
 == Console
 
@@ -69,6 +72,9 @@ Current version: %s
 
 Custom colors
 == Cores personalizadas
+
+Demos
+== Demos
 
 Disconnect
 == Desconectar
@@ -93,6 +99,12 @@ Emoticon
 
 Enter
 == Entrar
+
+Error
+== Erro
+
+Error loading demo
+== erro ao carregar demo
 
 FSAA samples
 == Amostras FSAA
@@ -142,20 +154,11 @@ Graphics
 Grenade
 == Granada
 
-Group
-== Group
-
-HD
-== HD
-
 Hammer
 == Martelo
 
 Has people playing
 == Tem gente jogando
-
-Height
-== Height
 
 High Detail
 == Mais detalhes (HD)
@@ -235,9 +238,6 @@ Name
 News
 == Notícia
 
-Next Envelope
-== Next Envelope
-
 Next weapon
 == Próxima arma
 
@@ -256,14 +256,14 @@ No servers found
 No servers match your filter criteria
 == Nenhum servidor corresponde aos critérios do filtro
 
-Order
-== Order
+Ok
+== Ok
 
 Password
 == Senha
 
 Password incorrect
-== Password incorrect
+== Senha incorreta
 
 Ping
 == Ping
@@ -281,7 +281,7 @@ Players
 == Jogadores
 
 Please balance teams!
-== Please balance teams!
+== Por favor, balanceie os times!
 
 Prev. weapon
 == Arma anterior
@@ -388,6 +388,9 @@ Standard gametype
 Standard map
 == Mapa padrão
 
+Sudden Death
+== Morte Súbita
+
 Switch weapon on pickup
 == Trocar arma ao pegar
 
@@ -412,6 +415,9 @@ Time limit
 Try again
 == Tente de novo
 
+Type
+== Tipo
+
 UI Color
 == Cor do menu
 
@@ -433,6 +439,9 @@ Vote yes
 Voting
 == Votação
 
+Warmup
+== Aquecimento
+
 Weapon
 == Arma
 
@@ -448,406 +457,526 @@ You must restart the game for all settings to take effect.
 Your skin
 == Sua skin
 
-##### needs translation ####
+##### needs translation #####
 
-%ds left
-==
+%d%% loaded
+== 
+
+%i minute left
+== 
+
+%i minutes left
+== 
+
+%i second left
+== 
+
+%i seconds left
+== 
+
+%s Right click for context menu.
+== 
 
 Add
-==
+== 
 
 Add Image
-==
+== 
 
 Add Quad
-==
+== 
 
 Add group
-==
+== 
 
 Add quads layer
-==
+== 
 
 Add tile layer
-==
+== 
 
 Adds a new group
-==
+== 
 
 Adds a new quad
-==
+== 
 
 Alpha value of the envelope
-==
+== 
+
+Anim
+== 
 
 Append
-==
+== 
 
 Append map
-==
+== 
 
-As this is the first time you launch the game, please enter your nick name below. It's recommended that you check the settings to adjust them to your liking before joining a server.
-==
+Are you sure that you want to delete the demo?
+== 
+
+Aspect ratio
+== 
+
+Automatically record demos
+== 
+
+Automatically take game over screenshot
+== 
 
 Blue value of the envelope
-==
+== 
 
 Border
-==
+== 
 
 CCW
-==
+== 
 
 CW
-==
+== 
 
 Cancel
-==
+== 
 
-Clear collision
-==
+Clear
+== 
 
 Clip H
-==
+== 
 
 Clip W
-==
+== 
 
 Clip X
-==
+== 
 
 Clip Y
-==
+== 
+
+Collision
+== 
 
 Color
-==
+== 
 
 Color Env
-==
+== 
 
 Color TO
-==
+== 
 
 Color+
-==
+== 
 
-Connection Problems...
-==
-
-Constructs collision from this layer
-==
+Constructs game tiles from this layer
+== 
 
 Creates a new color envelope
-==
+== 
 
 Creates a new map
-==
+== 
 
 Creates a new pos envelope
-==
+== 
 
 Creates a new quad layer
-==
+== 
 
 Creates a new tile layer
-==
+== 
+
+Death
+== 
 
 Decrease
-==
+== 
 
 Decrease animation speed
-==
+== 
 
 Delete
-==
+== 
+
+Delete demo
+== 
 
 Delete group
-==
+== 
 
 Delete layer
-==
+== 
+
+Delete this envelope
+== 
 
 Deletes the current quad
-==
+== 
 
 Deletes the layer
-==
-
-Demos
-==
+== 
 
 Detail
-==
+== 
+
+Down
+== 
 
 Embed
-==
+== 
 
 Embedded
-==
+== 
 
 Embeds the image into the map file.
-==
+== 
+
+Enable/disable group for saving
+== 
+
+Enable/disable layer for saving
+== 
 
 Envelopes
-==
-
-Error
-==
+== 
 
 Exit
-==
+== 
 
 Exits from the editor
-==
+== 
 
 External
-==
+== 
 
 File
-==
+== 
+
+File: %s
+== 
 
 Filename:
-==
+== 
+
+Folder
+== 
+
+Game tiles
+== 
 
 Green value of the envelope
-==
+== 
+
+Group
+== 
+
+HD
+== 
+
+Height
+== 
 
 Image
-==
+== 
 
 Images
-==
+== 
 
 Increase
-==
+== 
 
 Increase animation speed
-==
+== 
+
+Invalid Demo
+== 
 
 Layers
-==
+== 
+
+Left
+== 
 
 Left mouse button to move. Hold shift to move pivot. Hold ctrl to rotate.
-==
+== 
 
 Left mouse button to move. Hold shift to move the texture.
-==
+== 
 
-Left mouse to drag. Hold shift to alter time point aswell. Right click to delete.
-==
+Left mouse to drag. Hold ctrl to be more precise. Hold shift to alter time point aswell. Right click to delete.
+== 
+
+Load
+== 
 
 Load a new image to use in the map
-==
+== 
 
-Make collision
-==
+Load map
+== 
 
 Make external
-==
+== 
+
+Max Screenshots
+== 
+
+Max demos
+== 
+
+Name plates size
+== 
 
 Name:
-==
+== 
 
 New
-==
+== 
+
+New folder
+== 
+
+Next Envelope
+== 
 
 None
-==
+== 
 
 Normal animation speed
-==
-
-Ok
-==
+== 
 
 Open
-==
-
-Open map
-==
+== 
 
 Opens a map and adds everything from that map to the current one
-==
+== 
 
 Opens a map for editing
-==
+== 
+
+Order
+== 
 
 Para X
-==
+== 
 
 Para Y
-==
+== 
+
+Parent Folder
+== 
 
 Pos X
-==
+== 
 
 Pos Y
-==
+== 
 
 Pos. Env
-==
+== 
 
 Pos. TO
-==
+== 
 
 Pos.+
-==
+== 
 
 Press right mouse button to create a new point
-==
+== 
 
 Previous Envelope
-==
+== 
 
 Proof
-==
+== 
+
+Quads
+== 
+
+REC
+== 
+
+Reason:
+== 
 
 Record demo
-==
+== 
 
 Red value of the envelope
-==
+== 
+
+Refocus
+== 
 
 Remove
-==
-
-Removes collision from this layer
-==
+== 
 
 Removes the image from the map
-==
+== 
 
 Removes the image from the map file.
-==
+== 
 
 Replace
-==
+== 
 
 Replace Image
-==
+== 
 
 Replaces the image with a new one
-==
+== 
+
+Resizes the current Quad based on the aspect ratio of the image
+== 
+
+Right
+== 
+
+Rotation of the brush in degrees. Use left mouse button to drag and change the value. Hold shift to be more precise.
+== 
 
 Rotation of the envelope
-==
-
-Rotation value in degrees of the brush
-==
+== 
 
 Save
-==
+== 
 
 Save As
-==
+== 
 
 Save map
-==
+== 
 
 Saves the current map
-==
+== 
 
 Saves the current map under a new name
-==
+== 
 
 Select group. Right click for properties.
-==
+== 
 
 Select image
-==
+== 
 
 Select layer. Right click for properties.
-==
+== 
+
+Shift
+== 
+
+Sound error
+== 
 
 Square
-==
+== 
 
 Squares the current quad
-==
+== 
 
-Stop demo
-==
-
-Sudden Death
-==
+Stop record
+== 
 
 Switch between images and layers managment.
-==
+== 
 
 Switch curve type
-==
+== 
+
+The audio device couldn't be initialised.
+== 
+
+Tiles
+== 
+
+Time limit: %d min
+== 
 
 Toggle group visibility
-==
+== 
 
 Toggle layer visibility
-==
+== 
 
 Toggles the envelope editor.
-==
+== 
 
-Type
-==
+Unable to delete the demo
+== 
+
+Unhookable
+== 
+
+Up
+== 
 
 Use Clipping
-==
+== 
+
+Use left mouse button to drag and change the color value. Hold shift to be more precise.
+== 
+
+Use left mouse button to drag and change the value. Hold shift to be more precise.
+== 
 
 Use left mouse button to drag and create a brush.
-==
+== 
 
 Use left mouse button to paint with the brush. Right button clears the brush.
-==
-
-Warmup
-==
+== 
 
 Width
-==
+== 
 
 X-axis of the envelope
-==
+== 
 
 Y-axis of the envelope
-==
+== 
 
 ZI
-==
+== 
 
 ZO
-==
+== 
+
+[HOME] Restore map focus
+== 
 
 [M] Flip brush vertical
-==
+== 
 
 [N] Flip brush horizontal
-==
+== 
 
 [NumPad*] Zoom to normal and remove editor offset
-==
+== 
 
 [NumPad+] Zoom in
-==
+== 
 
 [NumPad-] Zoom out
-==
+== 
 
 [R] Rotates the brush counter clockwise
-==
+== 
 
 [T] Rotates the brush clockwise
-==
+== 
 
 [ctrl+h] Toggle High Detail
-==
+== 
 
 [ctrl+m] Toggle animation
-==
+== 
 
 [ctrl+p] Toggles proof borders. These borders represent what a player maximum can see.
-==
+== 
 
-error loading demo
-==
+no limit
+== 
 
-##### old translations ####
+##### old translations #####
 

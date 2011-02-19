@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_CLIENT_GRAPHICS_H
 #define ENGINE_CLIENT_GRAPHICS_H
 
@@ -6,6 +7,7 @@ class CGraphics_OpenGL : public IEngineGraphics
 {
 protected:
 	class IStorage *m_pStorage;
+	class IConsole *m_pConsole;
 	
 	//
 	typedef struct { float x, y, z; } CPoint;
@@ -39,6 +41,7 @@ protected:
 	float m_Rotation;
 	int m_Drawing;
 	bool m_DoScreenshot;
+	char m_aScreenshotName[128];
 
 	float m_ScreenX0;
 	float m_ScreenY0;
@@ -61,7 +64,7 @@ protected:
 
 	void Flush();
 	void AddVertices(int Count);
-	void Rotate4(CPoint *pCenter, CVertex *pPoints);
+	void Rotate4(const CPoint &rCenter, CVertex *pPoints);
 	
 	static unsigned char Sample(int w, int h, const unsigned char *pData, int u, int v, int Offset);
 public:
@@ -87,8 +90,8 @@ public:
 	virtual int LoadTextureRaw(int Width, int Height, int Format, const void *pData, int StoreFormat, int Flags);
 
 	// simple uncompressed RGBA loaders
-	virtual int LoadTexture(const char *pFilename, int StoreFormat, int Flags);
-	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename);
+	virtual int LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags);
+	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType);
 
 	void ScreenshotDirect(const char *pFilename);
 
@@ -134,7 +137,7 @@ public:
 	virtual int WindowActive();
 	virtual int WindowOpen();
 
-	virtual void TakeScreenshot();
+	virtual void TakeScreenshot(const char *pFilename);
 	virtual void Swap();
 
 	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes);

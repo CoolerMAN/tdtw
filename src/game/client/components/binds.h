@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_COMPONENTS_BINDS_H
 #define GAME_CLIENT_COMPONENTS_BINDS_H
 #include <game/client/component.h>
@@ -8,7 +9,7 @@ class CBinds : public CComponent
 {
 	char m_aaKeyBindings[KEY_LAST][128];
 
-	int GetKeyId(const char *pKeyName);
+	int GetKeyID(const char *pKeyName);
 
 	static void ConBind(IConsole::IResult *pResult, void *pUserData);
 	static void ConUnbind(IConsole::IResult *pResult, void *pUserData);
@@ -30,10 +31,10 @@ public:
 	
 	CBindsSpecial m_SpecialBinds;
 	
-	void Bind(int KeyId, const char *pStr);
+	void Bind(int KeyID, const char *pStr);
 	void SetDefaults();
 	void UnbindAll();
-	const char *Get(int KeyId);
+	const char *Get(int KeyID);
 	const char *GetKey(const char *pBindStr);
 	
 	virtual void OnConsoleInit();

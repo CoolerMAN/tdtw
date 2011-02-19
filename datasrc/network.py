@@ -13,7 +13,7 @@ Emotes = ["NORMAL", "PAIN", "HAPPY", "SURPRISE", "ANGRY", "BLINK"]
 PlayerStates = ["UNKNOWN", "PLAYING", "IN_MENU", "CHATTING"]
 GameFlags = ["TEAMS", "FLAGS"]
 
-Emoticons = [str(x) for x in _compatibility._xrange(1,16)]
+Emoticons = [str(x) for x in range(1,16)]
 
 Powerups = ["HEALTH", "ARMOR", "WEAPON", "NINJA"]
 
@@ -23,7 +23,14 @@ RawHeader = '''
 
 enum
 {
-	INPUT_STATE_MASK=0x3f,
+	INPUT_STATE_MASK=0x3f
+};
+
+enum
+{
+	TEAM_SPECTATORS=-1,
+	TEAM_RED,
+	TEAM_BLUE
 };
 '''
 
@@ -92,7 +99,7 @@ Objects = [
 		NetIntAny("m_X"),
 		NetIntAny("m_Y"),
 		
-		NetIntRange("m_Team", 0, 1),
+		NetIntRange("m_Team", 'TEAM_RED', 'TEAM_BLUE'),
 		NetIntRange("m_CarriedBy", -2, 'MAX_CLIENTS-1')
 	]),
 
@@ -149,8 +156,8 @@ Objects = [
 	
 	NetObject("PlayerInfo", [
 		NetIntRange("m_Local", 0, 1),
-		NetIntRange("m_ClientId", 0, 'MAX_CLIENTS-1'),
-		NetIntRange("m_Team", -1, 1),
+		NetIntRange("m_ClientID", 0, 'MAX_CLIENTS-1'),
+		NetIntRange("m_Team", 'TEAM_SPECTATORS', 'TEAM_BLUE'),
 
 		NetIntAny("m_Score"),
 		NetIntAny("m_Latency"),
@@ -185,15 +192,15 @@ Objects = [
 	NetEvent("HammerHit:Common", []),
 	
 	NetEvent("Death:Common", [
-		NetIntRange("m_ClientId", 0, 'MAX_CLIENTS-1'),
+		NetIntRange("m_ClientID", 0, 'MAX_CLIENTS-1'),
 	]),
 	
 	NetEvent("SoundGlobal:Common", [
-		NetIntRange("m_SoundId", 0, 'NUM_SOUNDS-1'),
+		NetIntRange("m_SoundID", 0, 'NUM_SOUNDS-1'),
 	]),
 
 	NetEvent("SoundWorld:Common", [
-		NetIntRange("m_SoundId", 0, 'NUM_SOUNDS-1'),
+		NetIntRange("m_SoundID", 0, 'NUM_SOUNDS-1'),
 	]),
 
 	NetEvent("DamageInd:Common", [
@@ -213,8 +220,8 @@ Messages = [
 	]),
 
 	NetMessage("Sv_Chat", [
-		NetIntRange("m_Team", -1, 1),
-		NetIntRange("m_Cid", -1, 'MAX_CLIENTS-1'),
+		NetIntRange("m_Team", 'TEAM_SPECTATORS', 'TEAM_BLUE'),
+		NetIntRange("m_ClientID", -1, 'MAX_CLIENTS-1'),
 		NetString("m_pMessage"),
 	]),
 	
@@ -226,7 +233,7 @@ Messages = [
 	]),
 
 	NetMessage("Sv_SoundGlobal", [
-		NetIntRange("m_Soundid", 0, 'NUM_SOUNDS-1'),
+		NetIntRange("m_SoundID", 0, 'NUM_SOUNDS-1'),
 	]),
 	
 	NetMessage("Sv_TuneParams", []),
@@ -238,7 +245,7 @@ Messages = [
 	]),
 
 	NetMessage("Sv_Emoticon", [
-		NetIntRange("m_Cid", 0, 'MAX_CLIENTS-1'),
+		NetIntRange("m_ClientID", 0, 'MAX_CLIENTS-1'),
 		NetIntRange("m_Emoticon", 0, 'NUM_EMOTICONS-1'),
 	]),
 
@@ -246,13 +253,13 @@ Messages = [
 	]),
 	
 	NetMessage("Sv_VoteOption", [
-		NetString("m_pCommand"),
+		NetStringStrict("m_pCommand"),
 	]),
 
 	NetMessage("Sv_VoteSet", [
 		NetIntRange("m_Timeout", 0, 60),
-		NetString("m_pDescription"),
-		NetString("m_pCommand"),
+		NetStringStrict("m_pDescription"),
+		NetStringStrict("m_pCommand"),
 	]),
 
 	NetMessage("Sv_VoteStatus", [
@@ -269,20 +276,20 @@ Messages = [
 	]),
 
 	NetMessage("Cl_SetTeam", [
-		NetIntRange("m_Team", -1, 1),
+		NetIntRange("m_Team", 'TEAM_SPECTATORS', 'TEAM_BLUE'),
 	]),
 	
 	NetMessage("Cl_StartInfo", [
-		NetString("m_pName"),
-		NetString("m_pSkin"),
+		NetStringStrict("m_pName"),
+		NetStringStrict("m_pSkin"),
 		NetBool("m_UseCustomColor"),
 		NetIntAny("m_ColorBody"),
 		NetIntAny("m_ColorFeet"),
 	]),	
 
 	NetMessage("Cl_ChangeInfo", [
-		NetString("m_pName"),
-		NetString("m_pSkin"),
+		NetStringStrict("m_pName"),
+		NetStringStrict("m_pSkin"),
 		NetBool("m_UseCustomColor"),
 		NetIntAny("m_ColorBody"),
 		NetIntAny("m_ColorFeet"),
@@ -299,7 +306,7 @@ Messages = [
 	]),
 	
 	NetMessage("Cl_CallVote", [
-		NetString("m_Type"),
-		NetString("m_Value"),
+		NetStringStrict("m_Type"),
+		NetStringStrict("m_Value"),
 	]),
 ]

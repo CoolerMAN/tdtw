@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SHARED_E_CONFIG_H
 #define ENGINE_SHARED_E_CONFIG_H
 
@@ -17,7 +18,9 @@ enum
 {
 	CFGFLAG_SAVE=1,
 	CFGFLAG_CLIENT=2,
-	CFGFLAG_SERVER=4
+	CFGFLAG_SERVER=4,
+	CFGFLAG_STORE=8,
+	CFGFLAG_MASTER=16
 };
 
 #endif

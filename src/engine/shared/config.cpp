@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/config.h>
 #include <engine/storage.h>
 #include <engine/shared/config.h>
@@ -59,12 +60,23 @@ public:
 		#undef MACRO_CONFIG_INT 
 		#undef MACRO_CONFIG_STR 		
 	}
+
+	virtual void RestoreStrings()
+	{
+		#define MACRO_CONFIG_INT(Name,ScriptName,def,min,max,flags,desc)	// nop
+		#define MACRO_CONFIG_STR(Name,ScriptName,len,def,flags,desc) if(!g_Config.m_##Name[0] && def[0]) str_copy(g_Config.m_##Name, def, len);
+
+		#include "config_variables.h"
+
+		#undef MACRO_CONFIG_INT
+		#undef MACRO_CONFIG_STR
+	}
 	
 	virtual void Save()
 	{
 		if(!m_pStorage)
 			return;
-		m_ConfigFile = m_pStorage->OpenFile("settings.cfg", IOFLAG_WRITE);
+		m_ConfigFile = m_pStorage->OpenFile("settings.cfg", IOFLAG_WRITE, IStorage::TYPE_SAVE);
 		
 		if(!m_ConfigFile)
 			return;

@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/system.h>
 #include "network.h"
 
@@ -22,7 +23,7 @@ int CNetClient::Close()
 
 int CNetClient::Disconnect(const char *pReason)
 {
-	dbg_msg("netclient", "disconnected. reason=\"%s\"", pReason);
+	//dbg_msg("netclient", "disconnected. reason=\"%s\"", pReason);
 	m_Connection.Disconnect(pReason);
 	return 0;
 }

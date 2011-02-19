@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_TEXTRENDER_H
 #define ENGINE_TEXTRENDER_H
 #include "kernel.h"
@@ -18,6 +19,7 @@ public:
 	int m_Flags;
 	int m_LineCount;
 	int m_CharCount;
+	int m_MaxLines;
 	
 	float m_StartX;
 	float m_StartY;
@@ -46,7 +48,7 @@ public:
 	virtual void TextColor(float r, float g, float b, float a) = 0;
 	virtual void Text(void *pFontSetV, float x, float y, float Size, const char *pText, int MaxWidth) = 0;
 	virtual float TextWidth(void *pFontSetV, float Size, const char *pText, int Length) = 0;
-	virtual float TextLineCount(void *pFontSetV, float Size, const char *pText, int LineWidth) = 0;
+	virtual int TextLineCount(void *pFontSetV, float Size, const char *pText, float LineWidth) = 0;
 };
 
 class IEngineTextRender : public ITextRender

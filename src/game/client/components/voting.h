@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_COMPONENTS_VOTING_H
 #define GAME_CLIENT_COMPONENTS_VOTING_H
 #include <game/client/component.h>
@@ -40,9 +41,9 @@ public:
 	
 	void RenderBars(CUIRect Bars, bool Text);
 	
-	void CallvoteKick(int ClientId);
+	void CallvoteKick(int ClientID, const char *pReason);
 	void CallvoteOption(int Option);
-	void ForcevoteKick(int ClientId);
+	void ForcevoteKick(int ClientID, const char *pReason);
 	void ForcevoteOption(int Option);
 	
 	void Vote(int v); // -1 = no, 1 = yes

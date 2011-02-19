@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_COMPONENTS_MENUS_H
 #define GAME_CLIENT_COMPONENTS_MENUS_H
 
@@ -34,9 +35,9 @@ class CMenus : public CComponent
 
 
 	int DoButton_DemoPlayer(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
+	int DoButton_DemoPlayer_Sprite(const void *pID, int SpriteId, int Checked, const CUIRect *pRect);
 	int DoButton_Menu(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
 	int DoButton_MenuTab(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Corners);
-	int DoButton_SettingsTab(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
 	int DoButton_ColSettingsTab(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
 
 	int DoButton_CheckBox_Common(const void *pID, const char *pText, const char *pBoxText, const CUIRect *pRect);
@@ -49,9 +50,8 @@ class CMenus : public CComponent
 	static void ui_draw_settings_tab_button(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
 	*/
 
-	int DoButton_BrowseIcon(int Checked, const CUIRect *pRect);
+	int DoButton_Icon(int ImageId, int SpriteId, const CUIRect *pRect);
 	int DoButton_GridHeader(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
-	int DoButton_ListRow(const void *pID, const char *pText, int Checked, const CUIRect *pRect);
 
 	//static void ui_draw_browse_icon(int what, const CUIRect *r);
 	//static void ui_draw_grid_header(const void *id, const char *text, int checked, const CUIRect *r, const void *extra);
@@ -79,10 +79,10 @@ class CMenus : public CComponent
 		CUIRect m_HitRect;
 	};
 	
-	void UiDoListboxStart(void *pId, const CUIRect *pRect, float RowHeight, const char *pTitle, const char *pBottomText, int NumItems,
+	void UiDoListboxStart(void *pID, const CUIRect *pRect, float RowHeight, const char *pTitle, const char *pBottomText, int NumItems,
 						  int ItemsPerRow, int SelectedIndex, float ScrollValue);
 	CListboxItem UiDoListboxNextItem(void *pID, bool Selected = false);
-	static CListboxItem UiDoListboxNextRow();
+	CListboxItem UiDoListboxNextRow();
 	int UiDoListboxEnd(float *pScrollValue, bool *pItemActivated);
 	
 	//static void demolist_listdir_callback(const char *name, int is_dir, void *user);
@@ -96,6 +96,9 @@ class CMenus : public CComponent
 		POPUP_MESSAGE,
 		POPUP_DISCONNECTED,
 		POPUP_PURE,
+		POPUP_LANGUAGE,
+		POPUP_DELETE_DEMO,
+		POPUP_SOUNDERROR,
 		POPUP_PASSWORD,
 		POPUP_QUIT, 
 	};
@@ -140,34 +143,52 @@ class CMenus : public CComponent
 	static float ms_ListheaderHeight;
 	static float ms_FontmodHeight;
 	
-	// for graphic settings
-	bool m_NeedRestart;
+	// for settings
+	bool m_NeedRestartGraphics;
+	bool m_NeedRestartSound;
 	bool m_NeedSendinfo;
 	
 	//
 	bool m_EscapePressed;
 	bool m_EnterPressed;
+	bool m_DeletePressed;
+
+	// for map download popup
+	int64 m_DownloadLastCheckTime;
+	int m_DownloadLastCheckSize;
+	float m_DownloadSpeed;
 	
 	// for call vote
 	int m_CallvoteSelectedOption;
 	int m_CallvoteSelectedPlayer;
+	char m_aCallvoteReason[16];
 	
 	// demo
 	struct CDemoItem
 	{
-		char m_aFilename[512];
-		char m_aName[256];
+		char m_aFilename[128];
+		char m_aName[128];
+		bool m_IsDir;
+		int m_StorageType;
 		
-		bool operator<(const CDemoItem &Other) { return str_comp(m_aName, Other.m_aName) < 0; } 
+		bool m_InfosLoaded;
+		bool m_Valid;
+		char m_aMap[64];
+		
+		bool operator<(const CDemoItem &Other) { return !str_comp(m_aFilename, "..") ? true : !str_comp(Other.m_aFilename, "..") ? false :
+														m_IsDir && !Other.m_IsDir ? true : !m_IsDir && Other.m_IsDir ? false :
+														str_comp_filenames(m_aFilename, Other.m_aFilename) < 0; }
 	};
 	
 	sorted_array<CDemoItem> m_lDemos;
 	char m_aCurrentDemoFolder[256];
+	int m_DemolistSelectedIndex;
+	bool m_DemolistSelectedIsDir;
+	int m_DemolistStorageType;
 	
+	void DemolistOnUpdate(bool Reset);
 	void DemolistPopulate();
-	static void DemolistCountCallback(const char *pName, int IsDir, void *pUser);
-	static void DemolistFetchCallback(const char *pName, int IsDir, void *pUser);
-	void DemoSetParentDirectory();
+	static void DemolistFetchCallback(const char *pName, int IsDir, int StorageType, void *pUser);
 	
 	// found in menus.cpp
 	int Render();
@@ -196,6 +217,7 @@ class CMenus : public CComponent
 	static void ConchainServerbrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	
 	// found in menus_settings.cpp
+	void RenderLanguageSelection(CUIRect MainView);
 	void RenderSettingsGeneral(CUIRect MainView);
 	void RenderSettingsPlayer(CUIRect MainView);
 	void RenderSettingsControls(CUIRect MainView);

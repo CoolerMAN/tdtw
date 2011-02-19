@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_SERVER_PLAYER_H
 #define GAME_SERVER_PLAYER_H
 
@@ -12,7 +13,7 @@ class CPlayer
 	MACRO_ALLOC_POOL_ID()
 	
 public:
-	CPlayer(CGameContext *pGameServer, int CID, int Team);
+	CPlayer(CGameContext *pGameServer, int ClientID, int Team);
 	~CPlayer();
 
 	void Init(int CID);
@@ -63,6 +64,12 @@ public:
 	int m_Score;
 	int m_ScoreStartTick;
 	bool m_ForceBalanced;
+	int m_LastActionTick;
+	struct
+	{
+		int m_TargetX;
+		int m_TargetY;
+	} m_LatestActivity;
 	
 private:
 	CCharacter *Character;

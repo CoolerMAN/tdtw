@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_CLIENT_CLIENT_H
 #define ENGINE_CLIENT_CLIENT_H
 
@@ -19,7 +20,7 @@
 
 #include <engine/shared/engine.h>
 #include <engine/shared/protocol.h>
-#include <engine/shared/demorec.h>
+#include <engine/shared/demo.h>
 #include <engine/shared/network.h>
 
 #include "srvbrowse.h"
@@ -72,6 +73,36 @@ public:
 };
 
 
+class CFileCollection
+{
+	enum
+	{
+		MAX_ENTRIES=1000,
+		TIMESTAMP_LENGTH=20,	// _YYYY-MM-DD_HH-MM-SS
+	};
+
+	int64 m_aTimestamps[MAX_ENTRIES];
+	int m_NumTimestamps;
+	int m_MaxEntries;
+	char m_aFileDesc[128];
+	int m_FileDescLength;
+	char m_aFileExt[32];
+	int m_FileExtLength;
+	char m_aPath[512];
+	IStorage *m_pStorage;
+
+	bool IsFilenameValid(const char *pFilename);
+	int64 ExtractTimestamp(const char *pTimestring);
+	void BuildTimestring(int64 Timestamp, char *pTimestring);
+
+public:
+	void Init(IStorage *pStorage, const char *pPath, const char *pFileDesc, const char *pFileExt, int MaxEntries);
+	void AddEntry(int64 Timestamp);
+
+	static void FilelistCallback(const char *pFilename, int IsDir, int StorageType, void *pUser);
+};
+
+
 class CClient : public IClient, public CDemoPlayer::IListner
 {
 	// needed interfaces
@@ -109,6 +140,9 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	NETADDR m_ServerAddress;
 	int m_WindowMustRefocus;
 	int m_SnapCrcErrors;
+	bool m_AutoScreenshotRecycle;
+	bool m_EditorActive;
+	bool m_SoundInitFailed;
 
 	int m_AckGameTick;
 	int m_CurrentRecvTick;
@@ -202,6 +236,8 @@ public:
 
 	virtual bool ConnectionProblems();
 
+	virtual bool SoundInitFailed() { return m_SoundInitFailed; }
+
 	void DirectInput(int *pInput, int Size);
 	void SendInput();
 
@@ -230,10 +266,10 @@ public:
 
 	// ---
 
-	void *SnapGetItem(int SnapId, int Index, CSnapItem *pItem);
-	void SnapInvalidateItem(int SnapId, int Index);
-	void *SnapFindItem(int SnapId, int Type, int Id);
-	int SnapNumItems(int SnapId);
+	void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem);
+	void SnapInvalidateItem(int SnapID, int Index);
+	void *SnapFindItem(int SnapID, int Type, int ID);
+	int SnapNumItems(int SnapID);
 	void SnapSetStaticsize(int ItemType, int Size);
 
 	void Render();
@@ -260,8 +296,6 @@ public:
 
 	void Update();
 
-	virtual const char *UserDirectory();
-
 	void InitEngine(const char *pAppname);
 	void RegisterInterfaces();
 	void InitInterfaces();
@@ -281,15 +315,19 @@ public:
 	static void Con_Play(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Record(IConsole::IResult *pResult, void *pUserData);
 	static void Con_StopRecord(IConsole::IResult *pResult, void *pUserData);
-	static void Con_ServerDummy(IConsole::IResult *pResult, void *pUserData);
 
 	// ColTW
 	static void Con_Gfc(IConsole::IResult *pResult, void *pUserData);
 
 	void RegisterCommands();
 
-	const char *DemoPlayer_Play(const char *pFilename);
-	const char *DemoRecorder_Start(const char *pFilename);
+	const char *DemoPlayer_Play(const char *pFilename, int StorageType);
+	void DemoRecorder_Start(const char *pFilename, bool WithTimestamp);
+	void DemoRecorder_HandleAutoStart();
+	void DemoRecorder_Stop();
+
+	void AutoScreenshot_Start();
+	void AutoScreenshot_Cleanup();
 
 	virtual class CEngine *Engine() { return &m_Engine; }
 };

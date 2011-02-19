@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SHARED_HUFFMAN_H
 #define ENGINE_SHARED_HUFFMAN_H
 
@@ -36,7 +37,7 @@ class CHuffman
 	CNode *m_pStartNode;
 	int m_NumNodes;
 	
-	void Setbits_r(CNode *pNode, int Bits, int Depth);
+	void Setbits_r(CNode *pNode, int Bits, unsigned Depth);
 	void ConstructTree(const unsigned *pFrequencies);
 	
 public:

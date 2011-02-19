@@ -7,6 +7,9 @@
 Abort
 == Avbryt
 
+Address
+== Adress
+
 All
 == Alla
 
@@ -33,9 +36,6 @@ Body
 
 Call vote
 == Röstning
-
-Cancel
-== Cancel
 
 Chat
 == Chatt
@@ -70,9 +70,6 @@ Custom colors
 Demos
 == Demon
 
-Detail
-== Detail
-
 Disconnect
 == Avsluta
 
@@ -97,9 +94,6 @@ Emoticon
 Enter
 == Fortsätt
 
-External
-== External
-
 FSAA samples
 == FSAA samplingar
 
@@ -112,20 +106,11 @@ Favorites
 Feet
 == Fötter
 
-File
-== File
-
-Filename:
-== Filename:
-
 Filter
 == Filter
 
 Fire
 == Skjuta
-
-Force vote
-== Force vote
 
 Fullscreen
 == Fullskärm
@@ -154,20 +139,11 @@ Graphics
 Grenade
 == Granater
 
-Group
-== Group
-
-HD
-== HD
-
 Hammer
 == Hammare
 
 Has people playing
 == Har folk som spelar
-
-Height
-== Height
 
 High Detail
 == Extra detaljer
@@ -265,8 +241,17 @@ No servers found
 No servers match your filter criteria
 == Inga servrar matchar dina filterkriterer
 
+Ok
+== Ok
+
 Password
 == Lösenord
+
+Password incorrect
+== Felaktigt lösenord
+
+Ping
+== Ping
 
 Pistol
 == Pistol
@@ -355,9 +340,6 @@ Settings
 Shotgun
 == Hagelgevär
 
-Show chat
-== Show chat
-
 Show name plates
 == Visa namnskyltar
 
@@ -385,9 +367,6 @@ Standard gametype
 Standard map
 == Standardkarta
 
-Switch curve type
-== Switch curve type
-
 Switch weapon on pickup
 == Byt vapen vid anskaffning
 
@@ -412,17 +391,20 @@ Time limit
 Try again
 == Försök igen
 
+Type
+== Typ
+
 UI Color
 == Gränssnittfärg
 
-Use left mouse button to drag and create a brush.
-== Use left mouse button to drag and create a brush.
-
-Use left mouse button to paint with the brush. Right button clears the brush.
-== Use left mouse button to paint with the brush. Right button clears the brush.
-
 Use sounds
 == Använd ljudeffekter
+
+V-Sync
+== V-Sync
+
+Version
+== Version
 
 Vote no
 == Rösta nej
@@ -432,9 +414,6 @@ Vote yes
 
 Voting
 == Röstning
-
-Warmup
-== Warmup
 
 Weapon
 == Vapen
@@ -448,406 +427,556 @@ Yes
 You must restart the game for all settings to take effect.
 == Du måste starta om spelet för att ändringarna skall gälla.
 
-##### needs translation ####
+##### needs translation #####
+
+%d%% loaded
+== 
 
 %ds left
-==
+== 
+
+%i minute left
+== 
+
+%i minutes left
+== 
+
+%i second left
+== 
+
+%i seconds left
+== 
 
 %s Right click for context menu.
-==
+== 
 
 Add
-==
+== 
 
 Add Image
-==
+== 
 
 Add Quad
-==
+== 
 
 Add group
-==
+== 
 
 Add quads layer
-==
+== 
 
 Add tile layer
-==
-
-Address
-==
+== 
 
 Adds a new group
-==
+== 
 
 Adds a new quad
-==
+== 
 
 Alpha value of the envelope
-==
+== 
 
 Anim
-==
+== 
 
 Append
-==
+== 
 
 Append map
-==
+== 
+
+Are you sure that you want to delete the demo?
+== 
+
+Aspect ratio
+== 
+
+Automatically record demos
+== 
+
+Automatically take game over screenshot
+== 
 
 Blue value of the envelope
-==
+== 
 
 Border
-==
+== 
 
 CCW
-==
+== 
 
 CW
-==
+== 
 
-Clear collision
-==
+Cancel
+== 
+
+Clear
+== 
 
 Clip H
-==
+== 
 
 Clip W
-==
+== 
 
 Clip X
-==
+== 
 
 Clip Y
-==
+== 
+
+Collision
+== 
 
 Color
-==
+== 
 
 Color Env
-==
+== 
 
 Color TO
-==
+== 
 
 Color+
-==
+== 
 
 Connection Problems...
-==
+== 
 
-Constructs collision from this layer
-==
+Constructs game tiles from this layer
+== 
 
 Creates a new color envelope
-==
+== 
 
 Creates a new map
-==
+== 
 
 Creates a new pos envelope
-==
+== 
 
 Creates a new quad layer
-==
+== 
 
 Creates a new tile layer
-==
+== 
+
+Death
+== 
 
 Decrease
-==
+== 
 
 Decrease animation speed
-==
+== 
 
 Delete
-==
+== 
+
+Delete demo
+== 
 
 Delete group
-==
+== 
 
 Delete layer
-==
+== 
+
+Delete this envelope
+== 
 
 Deletes the current quad
-==
+== 
 
 Deletes the layer
-==
+== 
+
+Detail
+== 
+
+Down
+== 
 
 Embed
-==
+== 
 
 Embedded
-==
+== 
 
 Embeds the image into the map file.
-==
+== 
+
+Enable/disable group for saving
+== 
+
+Enable/disable layer for saving
+== 
 
 Envelopes
-==
+== 
 
 Error
-==
+== 
+
+Error loading demo
+== 
 
 Exit
-==
+== 
 
 Exits from the editor
-==
+== 
+
+External
+== 
+
+File
+== 
+
+File: %s
+== 
+
+Filename:
+== 
+
+Folder
+== 
+
+Force vote
+== 
+
+Game tiles
+== 
 
 Green value of the envelope
-==
+== 
+
+Group
+== 
+
+HD
+== 
+
+Height
+== 
 
 Image
-==
+== 
 
 Images
-==
+== 
 
 Increase
-==
+== 
 
 Increase animation speed
-==
+== 
+
+Invalid Demo
+== 
 
 Layers
-==
+== 
+
+Left
+== 
 
 Left mouse button to move. Hold shift to move pivot. Hold ctrl to rotate.
-==
+== 
 
 Left mouse button to move. Hold shift to move the texture.
-==
+== 
 
-Left mouse to drag. Hold shift to alter time point aswell. Right click to delete.
-==
+Left mouse to drag. Hold ctrl to be more precise. Hold shift to alter time point aswell. Right click to delete.
+== 
+
+Load
+== 
 
 Load a new image to use in the map
-==
+== 
 
-Make collision
-==
+Load map
+== 
 
 Make external
-==
+== 
+
+Max Screenshots
+== 
+
+Max demos
+== 
+
+Name plates size
+== 
 
 Name:
-==
+== 
 
 New
-==
+== 
+
+New folder
+== 
 
 Next Envelope
-==
+== 
 
 None
-==
+== 
 
 Normal animation speed
-==
-
-Ok
-==
+== 
 
 Open
-==
-
-Open map
-==
+== 
 
 Opens a map and adds everything from that map to the current one
-==
+== 
 
 Opens a map for editing
-==
+== 
 
 Order
-==
+== 
 
 Para X
-==
+== 
 
 Para Y
-==
+== 
 
-Password incorrect
-==
-
-Ping
-==
+Parent Folder
+== 
 
 Please balance teams!
-==
+== 
 
 Pos X
-==
+== 
 
 Pos Y
-==
+== 
 
 Pos. Env
-==
+== 
 
 Pos. TO
-==
+== 
 
 Pos.+
-==
+== 
 
 Press right mouse button to create a new point
-==
+== 
 
 Previous Envelope
-==
+== 
 
 Proof
-==
+== 
+
+Quads
+== 
+
+REC
+== 
+
+Reason:
+== 
 
 Record demo
-==
+== 
 
 Red value of the envelope
-==
+== 
+
+Refocus
+== 
 
 Remove
-==
-
-Removes collision from this layer
-==
+== 
 
 Removes the image from the map
-==
+== 
 
 Removes the image from the map file.
-==
+== 
 
 Replace
-==
+== 
 
 Replace Image
-==
+== 
 
 Replaces the image with a new one
-==
+== 
+
+Resizes the current Quad based on the aspect ratio of the image
+== 
+
+Right
+== 
+
+Rotation of the brush in degrees. Use left mouse button to drag and change the value. Hold shift to be more precise.
+== 
 
 Rotation of the envelope
-==
-
-Rotation value in degrees of the brush
-==
+== 
 
 Save
-==
+== 
 
 Save As
-==
+== 
 
 Save map
-==
+== 
 
 Saves the current map
-==
+== 
 
 Saves the current map under a new name
-==
+== 
 
 Select group. Right click for properties.
-==
+== 
 
 Select image
-==
+== 
 
 Select layer. Right click for properties.
-==
+== 
+
+Shift
+== 
+
+Show chat
+== 
+
+Sound error
+== 
 
 Square
-==
+== 
 
 Squares the current quad
-==
+== 
 
-Stop demo
-==
+Stop record
+== 
 
 Sudden Death
-==
+== 
 
 Switch between images and layers managment.
-==
+== 
+
+Switch curve type
+== 
+
+The audio device couldn't be initialised.
+== 
+
+Tiles
+== 
+
+Time limit: %d min
+== 
 
 Toggle group visibility
-==
+== 
 
 Toggle layer visibility
-==
+== 
 
 Toggles the envelope editor.
-==
+== 
 
-Type
-==
+Unable to delete the demo
+== 
+
+Unhookable
+== 
+
+Up
+== 
 
 Use Clipping
-==
+== 
 
-V-Sync
-==
+Use left mouse button to drag and change the color value. Hold shift to be more precise.
+== 
 
-Version
-==
+Use left mouse button to drag and change the value. Hold shift to be more precise.
+== 
+
+Use left mouse button to drag and create a brush.
+== 
+
+Use left mouse button to paint with the brush. Right button clears the brush.
+== 
+
+Warmup
+== 
 
 Width
-==
+== 
 
 X-axis of the envelope
-==
+== 
 
 Y-axis of the envelope
-==
+== 
 
 Your skin
-==
+== 
 
 ZI
-==
+== 
 
 ZO
-==
+== 
+
+[HOME] Restore map focus
+== 
 
 [M] Flip brush vertical
-==
+== 
 
 [N] Flip brush horizontal
-==
+== 
 
 [NumPad*] Zoom to normal and remove editor offset
-==
+== 
 
 [NumPad+] Zoom in
-==
+== 
 
 [NumPad-] Zoom out
-==
+== 
 
 [R] Rotates the brush counter clockwise
-==
+== 
 
 [T] Rotates the brush clockwise
-==
+== 
 
 [ctrl+h] Toggle High Detail
-==
+== 
 
 [ctrl+m] Toggle animation
-==
+== 
 
 [ctrl+p] Toggles proof borders. These borders represent what a player maximum can see.
-==
+== 
 
-error loading demo
-==
+no limit
+== 
 
-##### old translations ####
+##### old translations #####
 

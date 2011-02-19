@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/graphics.h>
 #include <engine/shared/config.h>
 #include <game/generated/protocol.h>
@@ -17,7 +18,9 @@ CEmoticon::CEmoticon()
 
 void CEmoticon::ConKeyEmoticon(IConsole::IResult *pResult, void *pUserData)
 {
-	((CEmoticon *)pUserData)->m_Active = pResult->GetInteger(0) != 0;
+	CEmoticon *pSelf = (CEmoticon *)pUserData;
+	if(!pSelf->m_pClient->m_Snap.m_Spectate && pSelf->Client()->State() != IClient::STATE_DEMOPLAYBACK)
+		((CEmoticon *)pUserData)->m_Active = pResult->GetInteger(0) != 0;
 }
 
 void CEmoticon::ConEmote(IConsole::IResult *pResult, void *pUserData)
@@ -36,6 +39,11 @@ void CEmoticon::OnReset()
 	m_WasActive = false;
 	m_Active = false;
 	m_SelectedEmote = -1;
+}
+
+void CEmoticon::OnRelease()
+{
+	m_Active = false;
 }
 
 void CEmoticon::OnMessage(int MsgType, void *pRawMsg)
@@ -96,7 +104,7 @@ void CEmoticon::OnRender()
 	
 	m_WasActive = true;
 	
-	int x, y;
+	float x, y;
 	Input()->MouseRelative(&x, &y);
 
 	m_SelectorMouse.x += x;

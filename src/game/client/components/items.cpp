@@ -1,7 +1,7 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/graphics.h>
-#include <engine/shared/config.h>
-
+#include <engine/demo.h>
 #include <game/generated/protocol.h>
 #include <game/generated/client_data.h>
 
@@ -15,7 +15,7 @@
 
 #include "items.h"
 
-void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemId)
+void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 {
 
 	// get positions
@@ -60,7 +60,22 @@ void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemId)
 	{
 		m_pClient->m_pEffects->SmokeTrail(Pos, Vel*-1);
 		m_pClient->m_pFlow->Add(Pos, Vel*1000*Client()->FrameTime(), 10.0f);
-		Graphics()->QuadsSetRotation(Client()->LocalTime()*pi*2*2 + ItemId);
+		
+		if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+		{
+			const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+			static float Time = 0;
+			static float LastLocalTime = Client()->LocalTime();
+		
+			if(!pInfo->m_Paused)
+				Time += (Client()->LocalTime()-LastLocalTime)*pInfo->m_Speed;
+			
+			Graphics()->QuadsSetRotation(Time*pi*2*2 + ItemID);
+			
+			LastLocalTime = Client()->LocalTime();
+		}
+		else
+			Graphics()->QuadsSetRotation(Client()->LocalTime()*pi*2*2 + ItemID);
 	}
 	else
 	{
@@ -177,8 +192,25 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 	Graphics()->QuadsSetRotation(Angle);
 
 	float Offset = Pos.y/32.0f + Pos.x/32.0f;
-	Pos.x += cosf(Client()->LocalTime()*2.0f+Offset)*2.5f;
-	Pos.y += sinf(Client()->LocalTime()*2.0f+Offset)*2.5f;
+	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	{
+		const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+		static float Time = 0;
+		static float LastLocalTime = Client()->LocalTime();
+		
+		if(!pInfo->m_Paused)
+			Time += (Client()->LocalTime()-LastLocalTime)*pInfo->m_Speed;
+			
+		Pos.x += cosf(Time*2.0f+Offset)*2.5f;
+		Pos.y += sinf(Time*2.0f+Offset)*2.5f;
+		
+		LastLocalTime = Client()->LocalTime();
+	}
+	else
+	{
+		Pos.x += cosf(Client()->LocalTime()*2.0f+Offset)*2.5f;
+		Pos.y += sinf(Client()->LocalTime()*2.0f+Offset)*2.5f;
+	}
 	RenderTools()->DrawSprite(Pos.x, Pos.y, Size);
 	Graphics()->QuadsEnd();
 }
@@ -191,6 +223,12 @@ void CItems::RenderFlag(const CNetObj_Flag *pPrev, const CNetObj_Flag *pCurrent)
 	Graphics()->BlendNormal();
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
+
+	if(pCurrent->m_Team == TEAM_RED)
+		RenderTools()->SelectSprite(SPRITE_FLAG_RED);
+	else
+		RenderTools()->SelectSprite(SPRITE_FLAG_BLUE);
+
 	Graphics()->QuadsSetRotation(Angle);
 
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
@@ -200,18 +238,18 @@ void CItems::RenderFlag(const CNetObj_Flag *pPrev, const CNetObj_Flag *pCurrent)
 		Pos = vec2(pCurrent->m_X, pCurrent->m_Y);
 
 	// make sure to use predicted position if we are the carrier
-	if(m_pClient->m_Snap.m_pLocalInfo && pCurrent->m_CarriedBy == m_pClient->m_Snap.m_pLocalInfo->m_ClientId)
+	if(m_pClient->m_Snap.m_pLocalInfo && pCurrent->m_CarriedBy == m_pClient->m_Snap.m_pLocalInfo->m_ClientID)
 		Pos = m_pClient->m_LocalCharacterPos;
 
 	if(pCurrent->m_Team == 0) // red team
 	{
-		RenderTools()->SelectSprite(SPRITE_FLAG_RED);
+		//RenderTools()->SelectSprite(SPRITE_FLAG_RED);
 		if(g_Config.m_ClEffectsFlagtrail)
 			m_pClient->m_pEffects->PowerupShine(Pos, vec2(32,32),vec4(0.89f,0.16f,0.21f,1));
 	}
 	else
 	{
-		RenderTools()->SelectSprite(SPRITE_FLAG_BLUE);
+		//RenderTools()->SelectSprite(SPRITE_FLAG_BLUE);
 		if(g_Config.m_ClEffectsFlagtrail)
 			m_pClient->m_pEffects->PowerupShine(Pos, vec2(32,32),vec4(0.098f,0.10f,0.89f,1));
 	}
@@ -300,11 +338,11 @@ void CItems::OnRender()
 
 		if(Item.m_Type == NETOBJTYPE_PROJECTILE)
 		{
-			RenderProjectile((const CNetObj_Projectile *)pData, Item.m_Id);
+			RenderProjectile((const CNetObj_Projectile *)pData, Item.m_ID);
 		}
 		else if(Item.m_Type == NETOBJTYPE_PICKUP)
 		{
-			const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_Id);
+			const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
 			if(pPrev)
 				RenderPickup((const CNetObj_Pickup *)pPrev, (const CNetObj_Pickup *)pData);
 		}
@@ -322,7 +360,7 @@ void CItems::OnRender()
 
 		if(Item.m_Type == NETOBJTYPE_FLAG)
 		{
-			const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_Id);
+			const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
 			if (pPrev)
 				RenderFlag((const CNetObj_Flag *)pPrev, (const CNetObj_Flag *)pData);
 		}

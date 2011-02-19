@@ -1,4 +1,6 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include <new>
 #include <base/system.h>
 #include <engine/shared/protocol.h>
 #include <engine/storage.h>
@@ -29,19 +31,6 @@ float CConsole::CResult::GetFloat(unsigned Index)
 }
 
 // the maximum number of tokens occurs in a string of length CONSOLE_MAX_STR_LENGTH with tokens size 1 separated by single spaces
-static char *SkipBlanks(char *pStr)
-{
-	while(*pStr && (*pStr == ' ' || *pStr == '\t' || *pStr == '\n'))
-		pStr++;
-	return pStr;
-}
-
-static char *SkipToBlank(char *pStr)
-{
-	while(*pStr && (*pStr != ' ' && *pStr != '\t' && *pStr != '\n'))
-		pStr++;
-	return pStr;
-}
 
 
 int CConsole::ParseStart(CResult *pResult, const char *pString, int Length)
@@ -55,9 +44,9 @@ int CConsole::ParseStart(CResult *pResult, const char *pString, int Length)
 	pStr = pResult->m_aStringStorage;
 	
 	// get command
-	pStr = SkipBlanks(pStr);
+	pStr = str_skip_whitespaces(pStr);
 	pResult->m_pCommand = pStr;
-	pStr = SkipToBlank(pStr);
+	pStr = str_skip_to_whitespace(pStr);
 	
 	if(*pStr)
 	{
@@ -91,7 +80,7 @@ int CConsole::ParseArgs(CResult *pResult, const char *pFormat)
 			Optional = 1;
 		else
 		{
-			pStr = SkipBlanks(pStr);
+			pStr = str_skip_whitespaces(pStr);
 		
 			if(!(*pStr)) // error, non optional command needs value
 			{
@@ -140,11 +129,11 @@ int CConsole::ParseArgs(CResult *pResult, const char *pFormat)
 				if(Command == 'r') // rest of the string
 					break;
 				else if(Command == 'i') // validate int
-					pStr = SkipToBlank(pStr);
+					pStr = str_skip_to_whitespace(pStr);
 				else if(Command == 'f') // validate float
-					pStr = SkipToBlank(pStr);
+					pStr = str_skip_to_whitespace(pStr);
 				else if(Command == 's') // validate string
-					pStr = SkipToBlank(pStr);
+					pStr = str_skip_to_whitespace(pStr);
 
 				if(pStr[0] != 0) // check for end of string
 				{
@@ -164,23 +153,71 @@ void CConsole::RegisterPrintCallback(FPrintCallback pfnPrintCallback, void *pUse
 	m_pPrintCallbackUserdata = pUserData;
 }
 
-void CConsole::Print(const char *pStr)
+void CConsole::Print(int Level, const char *pFrom, const char *pStr)
 {
-	dbg_msg("console" ,"%s", pStr);
-	if (m_pfnPrintCallback)
-		m_pfnPrintCallback(pStr, m_pPrintCallbackUserdata);
+	dbg_msg(pFrom ,"%s", pStr);
+	if(Level <= g_Config.m_ConsoleOutputLevel && m_pfnPrintCallback)
+	{
+		char aBuf[1024];
+		str_format(aBuf, sizeof(aBuf), "[%s]: %s", pFrom, pStr);
+		m_pfnPrintCallback(aBuf, m_pPrintCallbackUserdata);
+	}
+}
+
+bool CConsole::LineIsValid(const char *pStr)
+{
+	if(!pStr || *pStr == 0)
+		return false;
+	
+	do
+	{
+		CResult Result;
+		const char *pEnd = pStr;
+		const char *pNextPart = 0;
+		int InString = 0;
+		
+		while(*pEnd)
+		{
+			if(*pEnd == '"')
+				InString ^= 1;
+			else if(*pEnd == '\\') // escape sequences
+			{
+				if(pEnd[1] == '"')
+					pEnd++;
+			}
+			else if(!InString)
+			{
+				if(*pEnd == ';')  // command separator
+				{
+					pNextPart = pEnd+1;
+					break;
+				}
+				else if(*pEnd == '#')  // comment, no need to do anything more
+					break;
+			}
+			
+			pEnd++;
+		}
+		
+		if(ParseStart(&Result, pStr, (pEnd-pStr) + 1) != 0)
+			return false;
+
+		CCommand *pCommand = FindCommand(Result.m_pCommand, m_FlagMask);
+		if(!pCommand || ParseArgs(&Result, pCommand->m_pParams))
+			return false;
+		
+		pStr = pNextPart;
+	}
+	while(pStr && *pStr);
+
+	return true;
 }
 
 void CConsole::ExecuteLineStroked(int Stroke, const char *pStr)
-{
-	CResult Result;
-	
-	char aStrokeStr[2] = {'0', 0};
-	if(Stroke)
-		aStrokeStr[0] = '1';
-
+{	
 	while(pStr && *pStr)
 	{
+		CResult Result;
 		const char *pEnd = pStr;
 		const char *pNextPart = 0;
 		int InString = 0;
@@ -219,7 +256,7 @@ void CConsole::ExecuteLineStroked(int Stroke, const char *pStr)
 			if(Result.m_pCommand[0] == '+')
 			{
 				// insert the stroke direction token
-				Result.AddArgument(aStrokeStr);
+				Result.AddArgument(m_paStrokeStr[Stroke]);
 				IsStrokeCommand = 1;
 			}
 			
@@ -229,7 +266,14 @@ void CConsole::ExecuteLineStroked(int Stroke, const char *pStr)
 				{
 					char aBuf[256];
 					str_format(aBuf, sizeof(aBuf), "Invalid arguments... Usage: %s %s", pCommand->m_pName, pCommand->m_pParams);
-					Print(aBuf);
+					Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+				}
+				else if(m_StoreCommands && pCommand->m_Flags&CFGFLAG_STORE)
+				{
+					m_ExecutionQueue.AddEntry();
+					m_ExecutionQueue.m_pLast->m_pfnCommandCallback = pCommand->m_pfnCallback;
+					m_ExecutionQueue.m_pLast->m_pCommandUserData = pCommand->m_pUserData;
+					m_ExecutionQueue.m_pLast->m_Result = Result;
 				}
 				else
 					pCommand->m_pfnCallback(&Result, pCommand->m_pUserData);
@@ -239,7 +283,7 @@ void CConsole::ExecuteLineStroked(int Stroke, const char *pStr)
 		{
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "No such command: %s.", Result.m_pCommand);
-			Print(aBuf);
+			Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 		}
 		
 		pStr = pNextPart;
@@ -301,14 +345,16 @@ void CConsole::ExecuteFile(const char *pFilename)
 	m_pFirstExec = &ThisFile;
 
 	// exec the file
-	IOHANDLE File = m_pStorage->OpenFile(pFilename, IOFLAG_READ);
+	IOHANDLE File = m_pStorage->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
 	
+	char aBuf[256];
 	if(File)
 	{
 		char *pLine;
 		CLineReader lr;
 		
-		dbg_msg("console", "executing '%s'", pFilename);
+		str_format(aBuf, sizeof(aBuf), "executing '%s'", pFilename);
+		Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
 		lr.Init(File);
 
 		while((pLine = lr.Get()))
@@ -317,14 +363,17 @@ void CConsole::ExecuteFile(const char *pFilename)
 		io_close(File);
 	}
 	else
-		dbg_msg("console", "failed to open '%s'", pFilename);
+	{
+		str_format(aBuf, sizeof(aBuf), "failed to open '%s'", pFilename);
+		Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
+	}
 	
 	m_pFirstExec = pPrev;
 }
 
 void CConsole::Con_Echo(IResult *pResult, void *pUserData)
 {
-	((CConsole*)pUserData)->Print(pResult->GetString(0));
+	((CConsole*)pUserData)->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Console", pResult->GetString(0));
 }
 
 void CConsole::Con_Exec(IResult *pResult, void *pUserData)
@@ -370,7 +419,7 @@ static void IntVariableCommand(IConsole::IResult *pResult, void *pUserData)
 	{
 		char aBuf[1024];
 		str_format(aBuf, sizeof(aBuf), "Value: %d", *(pData->m_pVariable));
-		pData->m_pConsole->Print(aBuf);
+		pData->m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 	}
 }
 
@@ -379,18 +428,43 @@ static void StrVariableCommand(IConsole::IResult *pResult, void *pUserData)
 	CStrVariableData *pData = (CStrVariableData *)pUserData;
 
 	if(pResult->NumArguments())
-		str_copy(pData->m_pStr, pResult->GetString(0), pData->m_MaxSize);
+	{
+		const char *pString = pResult->GetString(0);
+		if(!str_utf8_check(pString))
+		{
+			char Temp[4];
+			int Length = 0;
+			while(*pString)
+			{
+				int Size = str_utf8_encode(Temp, static_cast<const unsigned char>(*pString++));
+				if(Length+Size < pData->m_MaxSize)
+				{
+					mem_copy(pData->m_pStr+Length, &Temp, Size);
+					Length += Size;
+				}
+				else
+					break;
+			}
+			pData->m_pStr[Length] = 0;
+		}
+		else
+			str_copy(pData->m_pStr, pString, pData->m_MaxSize);
+	}
 	else
 	{
 		char aBuf[1024];
 		str_format(aBuf, sizeof(aBuf), "Value: %s", pData->m_pStr);
-		pData->m_pConsole->Print(aBuf);
+		pData->m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 	}
 }
 
 CConsole::CConsole(int FlagMask)
 {
 	m_FlagMask = FlagMask;
+	m_StoreCommands = true;
+	m_paStrokeStr[0] = "0";
+	m_paStrokeStr[1] = "1";
+	m_ExecutionQueue.Reset();
 	m_pFirstCommand = 0;
 	m_pFirstExec = 0;
 	m_pPrintCallbackUserdata = 0;
@@ -426,10 +500,16 @@ void CConsole::ParseArguments(int NumArgs, const char **ppArguments)
 	for(int i = 0; i < NumArgs; i++)
 	{
 		// check for scripts to execute
-		if(ppArguments[i][0] == '-' && ppArguments[i][1] == 'f' && ppArguments[i][2] == 0 && NumArgs - i > 1)
+		if(ppArguments[i][0] == '-' && ppArguments[i][1] == 'f' && ppArguments[i][2] == 0)
 		{
-			ExecuteFile(ppArguments[i+1]);
+			if(NumArgs - i > 1)
+				ExecuteFile(ppArguments[i+1]);
 			i++;
+		}
+		else if(!str_comp("-s", ppArguments[i]) || !str_comp("--silent", ppArguments[i]))
+		{
+			// skip silent param
+			continue;
 		}
 		else
 		{
@@ -467,7 +547,9 @@ void CConsole::Chain(const char *pName, FChainCommandCallback pfnChainFunc, void
 	
 	if(!pCommand)
 	{
-		dbg_msg("console", "failed to chain '%s'", pName);
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "failed to chain '%s'", pName);
+		Print(IConsole::OUTPUT_LEVEL_DEBUG, "console", aBuf);
 		return;
 	}
 	
@@ -482,6 +564,17 @@ void CConsole::Chain(const char *pName, FChainCommandCallback pfnChainFunc, void
 	// chain
 	pCommand->m_pfnCallback = Con_Chain;
 	pCommand->m_pUserData = pChainInfo;
+}
+
+void CConsole::StoreCommands(bool Store)
+{
+	if(!Store)
+	{
+		for(CExecutionQueue::CQueueEntry *pEntry = m_ExecutionQueue.m_pFirst; pEntry; pEntry = pEntry->m_pNext)
+			pEntry->m_pfnCommandCallback(&pEntry->m_Result, pEntry->m_pCommandUserData);
+		m_ExecutionQueue.Reset();
+	}
+	m_StoreCommands = Store;
 }
 
 

@@ -1,4 +1,5 @@
-/* copyright (c) 2007 magnus auvinen, see licence.txt for more info */
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -37,7 +38,6 @@
 	#include <windows.h>
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
-	#include <wspiapi.h>
 	#include <fcntl.h>
 	#include <direct.h>
 	#include <errno.h>
@@ -289,7 +289,7 @@ unsigned io_read(IOHANDLE io, void *buffer, unsigned size)
 	return fread(buffer, 1, size, (FILE*)io);
 }
 
-unsigned io_skip(IOHANDLE io, unsigned size)
+unsigned io_skip(IOHANDLE io, int size)
 {
 	fseek((FILE*)io, size, SEEK_CUR);
 	return size;
@@ -654,7 +654,7 @@ NETSOCKET net_udp_create(NETADDR bindaddr)
 {
 	/* TODO: IPv6 support */
 	struct sockaddr addr;
-	unsigned int mode = 1;
+	unsigned long mode = 1;
 	int broadcast = 1;
 
 	/* create socket */
@@ -672,9 +672,9 @@ NETSOCKET net_udp_create(NETADDR bindaddr)
 	
 	/* set non-blocking */
 #if defined(CONF_FAMILY_WINDOWS)
-	ioctlsocket(sock, FIONBIO, (unsigned long *)&mode);
+	ioctlsocket(sock, FIONBIO, &mode);
 #else
-	ioctl(sock, FIONBIO, (unsigned long *)&mode);
+	ioctl(sock, FIONBIO, &mode);
 #endif
 
 	/* set boardcast */
@@ -755,21 +755,21 @@ NETSOCKET net_tcp_create(const NETADDR *a)
 
 int net_tcp_set_non_blocking(NETSOCKET sock)
 {
-	unsigned int mode = 1;
+	unsigned long mode = 1;
 #if defined(CONF_FAMILY_WINDOWS)
-	return ioctlsocket(sock, FIONBIO, (unsigned long *)&mode);
+	return ioctlsocket(sock, FIONBIO, &mode);
 #else
-	return ioctl(sock, FIONBIO, (unsigned long *)&mode);
+	return ioctl(sock, FIONBIO, &mode);
 #endif
 }
 
 int net_tcp_set_blocking(NETSOCKET sock)
 {
-	unsigned int mode = 0;
+	unsigned long mode = 0;
 #if defined(CONF_FAMILY_WINDOWS)
-	return ioctlsocket(sock, FIONBIO, (unsigned long *)&mode);
+	return ioctlsocket(sock, FIONBIO, &mode);
 #else
-	return ioctl(sock, FIONBIO, (unsigned long *)&mode);
+	return ioctl(sock, FIONBIO, &mode);
 #endif
 }
 
@@ -863,12 +863,13 @@ int net_init()
 	return 0;
 }
 
-int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, void *user)
+int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user)
 {
 #if defined(CONF_FAMILY_WINDOWS)
 	WIN32_FIND_DATA finddata;
 	HANDLE handle;
 	char buffer[1024*2];
+	int length;
 	str_format(buffer, sizeof(buffer), "%s/*", dir);
 
 	handle = FindFirstFileA(buffer, &finddata);
@@ -876,24 +877,36 @@ int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, void *user)
 	if (handle == INVALID_HANDLE_VALUE)
 		return 0;
 
+	str_format(buffer, sizeof(buffer), "%s/", dir);
+	length = str_length(buffer);
+
 	/* add all the entries */
 	do
 	{
-		if(finddata.cFileName[0] != '.')
-			cb(finddata.cFileName, 0, user);
-	} while (FindNextFileA(handle, &finddata));
+		str_copy(buffer+length, finddata.cFileName, (int)sizeof(buffer)-length);
+		cb(finddata.cFileName, fs_is_dir(buffer), type, user);
+	}
+	while (FindNextFileA(handle, &finddata));
 
 	FindClose(handle);
 	return 0;
 #else
 	struct dirent *entry;
+	char buffer[1024*2];
+	int length;
 	DIR *d = opendir(dir);
 
 	if(!d)
 		return 0;
 		
+	str_format(buffer, sizeof(buffer), "%s/", dir);
+	length = str_length(buffer);
+
 	while((entry = readdir(d)) != NULL)
-		cb(entry->d_name, 0, user);
+	{
+		str_copy(buffer+length, entry->d_name, (int)sizeof(buffer)-length);
+		cb(entry->d_name, fs_is_dir(buffer), type, user);
+	}
 
 	/* close the directory and return */
 	closedir(d);
@@ -975,13 +988,57 @@ int fs_is_dir(const char *path)
 
 int fs_chdir(const char *path)
 {
-	if (fs_is_dir(path))
+	if(fs_is_dir(path))
 	{
-		chdir(path);
-		return 0;
+		if(chdir(path))
+			return 1;
+		else
+			return 0;
 	}
 	else
 		return 1;
+}
+
+char *fs_getcwd(char *buffer, int buffer_size)
+{
+	if(buffer == 0)
+		return 0;
+#if defined(CONF_FAMILY_WINDOWS)
+	return _getcwd(buffer, buffer_size);
+#else
+	return getcwd(buffer, buffer_size);
+#endif
+}
+
+int fs_parent_dir(char *path)
+{
+	char *parent = 0;
+	for(; *path; ++path)
+	{
+		if(*path == '/' || *path == '\\')
+			parent = path;
+	}
+	
+	if(parent)
+	{
+		*parent = 0;
+		return 0;
+	}
+	return 1;
+}
+
+int fs_remove(const char *filename)
+{
+	if(remove(filename) != 0)
+		return 1;
+	return 0;
+}
+
+int fs_rename(const char *oldname, const char *newname)
+{
+	if(rename(oldname, newname) != 0)
+		return 1;
+	return 0;
 }
 
 void swap_endian(void *data, unsigned elem_size, unsigned num)
@@ -1092,6 +1149,18 @@ void str_sanitize_strong(char *str_in)
 	}
 }
 
+/* makes sure that the string only contains the characters between 32 and 255 */
+void str_sanitize_cc(char *str_in)
+{
+	unsigned char *str = (unsigned char *)str_in;
+	while(*str)
+	{
+		if(*str < 32)
+			*str = ' ';
+		str++;
+	}
+}
+
 /* makes sure that the string only contains the characters between 32 and 255 + \r\n\t */
 void str_sanitize(char *str_in)
 {
@@ -1102,6 +1171,20 @@ void str_sanitize(char *str_in)
 			*str = ' ';
 		str++;
 	}
+}
+
+char *str_skip_to_whitespace(char *str)
+{
+	while(*str && (*str != ' ' && *str != '\t' && *str != '\n'))
+		str++;
+	return str;
+}
+
+char *str_skip_whitespaces(char *str)
+{
+	while(*str && (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\r'))
+		str++;
+	return str;
 }
 
 /* case */
@@ -1122,6 +1205,37 @@ int str_comp(const char *a, const char *b)
 int str_comp_num(const char *a, const char *b, const int num)
 {
 	return strncmp(a, b, num);
+}
+
+int str_comp_filenames(const char *a, const char *b)
+{
+	int result;
+
+	for(; *a && *b; ++a, ++b)
+	{
+		if(*a >= '0' && *a <= '9' && *b >= '0' && *b <= '9')
+		{
+			result = 0;
+			do
+			{
+				if(!result)
+					result = *a - *b;
+				++a; ++b;
+			}
+			while(*a >= '0' && *a <= '9' && *b >= '0' && *b <= '9');
+
+			if(*a >= '0' && *a <= '9')
+				return 1;
+			else if(*b >= '0' && *b <= '9')
+				return -1;
+			else if(result)
+				return result;
+		}
+
+		if(*a != *b)
+			break;
+	}
+	return *a - *b;
 }
 
 const char *str_find_nocase(const char *haystack, const char *needle)
@@ -1177,6 +1291,17 @@ void str_hex(char *dst, int dst_size, const void *data, int data_size)
 	}
 }
 
+void str_timestamp(char *buffer, int buffer_size)
+{
+	time_t time_data;
+	struct tm *time_info;
+	
+	time(&time_data);
+	time_info = localtime(&time_data);
+	strftime(buffer, buffer_size, "%Y-%m-%d_%H-%M-%S", time_info);
+	buffer[buffer_size-1] = 0;	/* assure null termination */
+}
+
 int mem_comp(const void *a, const void *b, int size)
 {
 	return memcmp(a,b,size);
@@ -1215,12 +1340,14 @@ void gui_messagebox(const char *title, const char *message)
 	RunStandardAlert(theItem, NULL, &itemIndex);
 #elif defined(CONF_FAMILY_UNIX)
 	static char cmd[1024];
+	int err;
 	/* use xmessage which is available on nearly every X11 system */
 	snprintf(cmd, sizeof(cmd), "xmessage -center -title '%s' '%s'",
 		title,
 		message);
 
-	system(cmd);
+	err = system(cmd);
+	dbg_msg("gui/msgbox", "result = %i", err);
 #elif defined(CONF_FAMILY_WINDOWS)
 	MessageBox(NULL,
 		message,
@@ -1281,14 +1408,14 @@ int str_utf8_forward(const char *str, int cursor)
 	{
 		if(!buf[1]) return cursor+1;
 		if(!buf[2]) return cursor+2;
-		return cursor+2;
+		return cursor+3;
 	}
 	else if((*buf & 0xF8) == 0xF0)	/* 11110xxx */
 	{
 		if(!buf[1]) return cursor+1;
 		if(!buf[2]) return cursor+2;
 		if(!buf[3]) return cursor+3;
-		return cursor+3;
+		return cursor+4;
 	}
 	
 	/* invalid */
@@ -1312,16 +1439,16 @@ int str_utf8_encode(char *ptr, int chr)
 	else if(chr <= 0xFFFF)
 	{
 		ptr[0] = 0xE0|((chr>>12)&0x0F);
-		ptr[1] = 0xC0|((chr>>6)&0x3F);
-		ptr[2] = 0xC0|(chr&0x3F);
+		ptr[1] = 0x80|((chr>>6)&0x3F);
+		ptr[2] = 0x80|(chr&0x3F);
 		return 3;
 	}
 	else if(chr <= 0x10FFFF)
 	{
 		ptr[0] = 0xF0|((chr>>18)&0x07);
-		ptr[1] = 0xC0|((chr>>12)&0x3F);
-		ptr[2] = 0xC0|((chr>>6)&0x3F);
-		ptr[3] = 0xC0|(chr&0x3F);
+		ptr[1] = 0x80|((chr>>12)&0x3F);
+		ptr[2] = 0x80|((chr>>6)&0x3F);
+		ptr[3] = 0x80|(chr&0x3F);
 		return 4;
 	}
 	
@@ -1376,6 +1503,24 @@ int str_utf8_decode(const char **ptr)
 	*ptr = buf;
 	return -1;
 	
+}
+
+int str_utf8_check(const char *str)
+{
+	while(*str)
+	{
+		if((*str&0x80) == 0x0)
+			str++;	
+		else if((*str&0xE0) == 0xC0 && (*(str+1)&0xC0) == 0x80)
+			str += 2;
+		else if((*str&0xF0) == 0xE0 && (*(str+1)&0xC0) == 0x80 && (*(str+2)&0xC0) == 0x80)
+			str += 3;
+		else if((*str&0xF8) == 0xF0 && (*(str+1)&0xC0) == 0x80 && (*(str+2)&0xC0) == 0x80 && (*(str+3)&0xC0) == 0x80)
+			str += 4;
+		else
+			return 0;
+	}
+	return 1;
 }
 
 

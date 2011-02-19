@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_COMPONENT_H
 #define GAME_CLIENT_COMPONENT_H
 
@@ -36,6 +37,7 @@ public:
 	virtual void OnInit() {};
 	virtual void OnReset() {};
 	virtual void OnRender() {};
+	virtual void OnRelease() {};
 	virtual void OnMapLoad() {};
 	virtual void OnMessage(int Msg, void *pRawMsg) {}
 	virtual bool OnMouseMove(float x, float y) { return false; }

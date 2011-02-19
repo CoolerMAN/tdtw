@@ -1,5 +1,7 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/sound.h>
+#include <engine/shared/config.h>
 #include <game/generated/client_data.h>
 #include <game/client/gameclient.h>
 #include <game/client/components/camera.h>
@@ -53,14 +55,14 @@ void CSounds::ClearQueue()
 void CSounds::Enqueue(int SetId)
 {
 	// add sound to the queue
-	if(m_QueuePos < QUEUE_SIZE)
+	if(!g_Config.m_ClEditor && m_QueuePos < QUEUE_SIZE)
 		m_aQueue[m_QueuePos++] = SetId;
 }
 
 void CSounds::PlayAndRecord(int Chn, int SetId, float Vol, vec2 Pos)
 {
 	CNetMsg_Sv_SoundGlobal Msg;
-	Msg.m_Soundid = SetId;
+	Msg.m_SoundID = SetId;
 	Client()->SendPackMsg(&Msg, MSGFLAG_NOSEND|MSGFLAG_RECORD);
 	
 	Play(Chn, SetId, Vol, Pos);

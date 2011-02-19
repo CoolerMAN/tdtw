@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SERVER_H
 #define ENGINE_SERVER_H
 #include "kernel.h"
@@ -47,11 +48,12 @@ public:
 	
 	virtual int SnapNewID() = 0;
 	virtual void SnapFreeID(int ID) = 0;
-	virtual void *SnapNewItem(int Type, int Id, int Size) = 0;
+	virtual void *SnapNewItem(int Type, int ID, int Size) = 0;
 
 	virtual void SnapSetStaticsize(int ItemType, int Size) = 0;
 	
 	virtual bool IsAuthed(int ClientID) = 0;
+	virtual void Kick(int ClientID, const char *pReason) = 0;
 };
 
 class IGameServer : public IInterface
@@ -68,7 +70,7 @@ public:
 	virtual void OnSnap(int ClientID) = 0;
 	virtual void OnPostSnap() = 0;
 	
-	virtual void OnMessage(int MsgId, CUnpacker *pUnpacker, int ClientID) = 0;
+	virtual void OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID) = 0;
 
 	virtual void OnClientConnected(int ClientID) = 0;
 	virtual void OnClientEnter(int ClientID) = 0;

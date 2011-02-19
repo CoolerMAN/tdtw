@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_SERVER_GAMECONTEXT_H
 #define GAME_SERVER_GAMECONTEXT_H
 
@@ -51,7 +52,9 @@ class CGameContext : public IGameServer
 	static void ConBroadcast(IConsole::IResult *pResult, void *pUserData);
 	static void ConSay(IConsole::IResult *pResult, void *pUserData);
 	static void ConSetTeam(IConsole::IResult *pResult, void *pUserData);
+	static void ConSetTeamAll(IConsole::IResult *pResult, void *pUserData);
 	static void ConAddVote(IConsole::IResult *pResult, void *pUserData);
+	static void ConClearVotes(IConsole::IResult *pResult, void *pUserData);
 	static void ConVote(IConsole::IResult *pResult, void *pUserData);
 	static void ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	
@@ -77,14 +80,14 @@ public:
 	CGameWorld m_World;
 	
 	// helper functions
-	class CCharacter *GetPlayerChar(int ClientId);
+	class CCharacter *GetPlayerChar(int ClientID);
 	
 	// voting
 	void StartVote(const char *pDesc, const char *pCommand);
 	void EndVote();
-	void SendVoteSet(int ClientId);
-	void SendVoteStatus(int ClientId, int Total, int Yes, int No);
-	void AbortVoteKickOnDisconnect(int ClientId);
+	void SendVoteSet(int ClientID);
+	void SendVoteStatus(int ClientID, int Total, int Yes, int No);
+	void AbortVoteKickOnDisconnect(int ClientID);
 	
 	int m_VoteCreator;
 	int64 m_VoteCloseTime;
@@ -130,15 +133,15 @@ public:
 
 	// network
 	void SendChatTarget(int To, const char *pText);
-	void SendChat(int ClientId, int Team, const char *pText);
-	void SendEmoticon(int ClientId, int Emoticon);
-	void SendWeaponPickup(int ClientId, int Weapon);
-	void SendBroadcast(const char *pText, int ClientId);
+	void SendChat(int ClientID, int Team, const char *pText);
+	void SendEmoticon(int ClientID, int Emoticon);
+	void SendWeaponPickup(int ClientID, int Weapon);
+	void SendBroadcast(const char *pText, int ClientID);
 	
 	
 	//
 	void CheckPureTuning();
-	void SendTuningParams(int ClientId);
+	void SendTuningParams(int ClientID);
 	
 	// engine events
 	virtual void OnInit();
@@ -147,23 +150,23 @@ public:
 	
 	virtual void OnTick();
 	virtual void OnPreSnap();
-	virtual void OnSnap(int ClientId);
+	virtual void OnSnap(int ClientID);
 	virtual void OnPostSnap();
 	
-	virtual void OnMessage(int MsgId, CUnpacker *pUnpacker, int ClientId);
+	virtual void OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID);
 
-	virtual void OnClientConnected(int ClientId);
-	virtual void OnClientEnter(int ClientId);
-	virtual void OnClientDrop(int ClientId);
-	virtual void OnClientDirectInput(int ClientId, void *pInput);
-	virtual void OnClientPredictedInput(int ClientId, void *pInput);
+	virtual void OnClientConnected(int ClientID);
+	virtual void OnClientEnter(int ClientID);
+	virtual void OnClientDrop(int ClientID);
+	virtual void OnClientDirectInput(int ClientID, void *pInput);
+	virtual void OnClientPredictedInput(int ClientID, void *pInput);
 
 	virtual const char *Version();
 	virtual const char *NetVersion();
 };
 
 inline int CmaskAll() { return -1; }
-inline int CmaskOne(int ClientId) { return 1<<ClientId; }
-inline int CmaskAllExceptOne(int ClientId) { return 0x7fffffff^CmaskOne(ClientId); }
-inline bool CmaskIsSet(int Mask, int ClientId) { return (Mask&CmaskOne(ClientId)) != 0; }
+inline int CmaskOne(int ClientID) { return 1<<ClientID; }
+inline int CmaskAllExceptOne(int ClientID) { return 0x7fffffff^CmaskOne(ClientID); }
+inline bool CmaskIsSet(int Mask, int ClientID) { return (Mask&CmaskOne(ClientID)) != 0; }
 #endif

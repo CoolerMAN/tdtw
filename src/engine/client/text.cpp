@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/system.h>
 #include <base/math.h>
 #include <engine/graphics.h>
@@ -29,12 +30,12 @@ enum
 };
 
 
-static int aFontSizes[] = {8,9,10,11,12,13,14,15,16,17,18,19,20,36};
+static int aFontSizes[] = {8,9,10,11,12,13,14,15,16,17,18,19,20,36,64};
 #define NUM_FONT_SIZES (sizeof(aFontSizes)/sizeof(int))
 
 struct CFontChar
 {
-	int m_Id;
+	int m_ID;
 	
 	// these values are scaled to the pFont size
 	// width * font_size == real_size
@@ -71,7 +72,7 @@ struct CFontSizeData
 class CFont
 {
 public:
-	char m_aFilename[128];
+	char m_aFilename[512];
 	FT_Face m_FtFace;
 	CFontSizeData m_aSizes[NUM_FONT_SIZES];
 };
@@ -177,6 +178,15 @@ class CTextRender : public IEngineTextRender
 		mem_free(pMem);
 	}
 
+	int AdjustOutlineThicknessToFontSize(int OutlineThickness, int FontSize)
+	{
+		if(FontSize > 36)
+			OutlineThickness *= 4;
+		else if(FontSize >= 18)
+			OutlineThickness *= 2;
+		return OutlineThickness;
+	}
+
 	void IncreaseTextureSize(CFontSizeData *pSizeData)
 	{
 		if(pSizeData->m_TextureWidth < pSizeData->m_TextureHeight)
@@ -190,14 +200,12 @@ class CTextRender : public IEngineTextRender
 	// TODO: Refactor: move this into a pFont class
 	void InitIndex(CFont *pFont, int Index)
 	{
-		int OutlineThickness = 1;
 		CFontSizeData *pSizeData = &pFont->m_aSizes[Index];
 		
 		pSizeData->m_FontSize = aFontSizes[Index];
 		FT_Set_Pixel_Sizes(pFont->m_FtFace, 0, pSizeData->m_FontSize);
 		
-		if(pSizeData->m_FontSize >= 18)
-			OutlineThickness = 2;
+		int OutlineThickness = AdjustOutlineThicknessToFontSize(1, pSizeData->m_FontSize);
 			
 		{
 			unsigned GlyphIndex;
@@ -236,10 +244,10 @@ class CTextRender : public IEngineTextRender
 	}
 
 
-	void UploadGlyph(CFontSizeData *pSizeData, int Texnum, int SlotId, int Chr, const void *pData)
+	void UploadGlyph(CFontSizeData *pSizeData, int Texnum, int SlotID, int Chr, const void *pData)
 	{
-		int x = (SlotId%pSizeData->m_NumXChars) * (pSizeData->m_TextureWidth/pSizeData->m_NumXChars);
-		int y = (SlotId/pSizeData->m_NumXChars) * (pSizeData->m_TextureHeight/pSizeData->m_NumYChars);
+		int x = (SlotID%pSizeData->m_NumXChars) * (pSizeData->m_TextureWidth/pSizeData->m_NumXChars);
+		int y = (SlotID/pSizeData->m_NumXChars) * (pSizeData->m_TextureHeight/pSizeData->m_NumYChars);
 		
 		glBindTexture(GL_TEXTURE_2D, pSizeData->m_aTextures[Texnum]);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y,
@@ -248,9 +256,9 @@ class CTextRender : public IEngineTextRender
 			m_FontTextureFormat, GL_UNSIGNED_BYTE, pData);
 	}
 
-	// 8k of data used for rendering glyphs
-	unsigned char ms_aGlyphData[(4096/64) * (4096/64)];
-	unsigned char ms_aGlyphDataOutlined[(4096/64) * (4096/64)];
+	// 32k of data used for rendering glyphs
+	unsigned char ms_aGlyphData[(1024/8) * (1024/8)];
+	unsigned char ms_aGlyphDataOutlined[(1024/8) * (1024/8)];
 
 	int GetSlot(CFontSizeData *pSizeData)
 	{
@@ -285,11 +293,10 @@ class CTextRender : public IEngineTextRender
 	int RenderGlyph(CFont *pFont, CFontSizeData *pSizeData, int Chr)
 	{
 		FT_Bitmap *pBitmap;
-		int SlotId = 0;
+		int SlotID = 0;
 		int SlotW = pSizeData->m_TextureWidth / pSizeData->m_NumXChars;
 		int SlotH = pSizeData->m_TextureHeight / pSizeData->m_NumYChars;
 		int SlotSize = SlotW*SlotH;
-		int OutlineThickness = 1;
 		int x = 1;
 		int y = 1;
 		int px, py;
@@ -305,13 +312,12 @@ class CTextRender : public IEngineTextRender
 		pBitmap = &pFont->m_FtFace->glyph->bitmap; // ignore_convention
 		
 		// fetch slot
-		SlotId = GetSlot(pSizeData);
-		if(SlotId < 0)
+		SlotID = GetSlot(pSizeData);
+		if(SlotID < 0)
 			return -1;
 		
 		// adjust spacing
-		if(pSizeData->m_FontSize >= 18)
-			OutlineThickness = 2;
+		int OutlineThickness = AdjustOutlineThicknessToFontSize(1, pSizeData->m_FontSize);
 		x += OutlineThickness;
 		y += OutlineThickness;
 
@@ -339,43 +345,46 @@ class CTextRender : public IEngineTextRender
 				ms_aGlyphData[py*SlotW+px] = 255;
 		
 		// upload the glyph
-		UploadGlyph(pSizeData, 0, SlotId, Chr, ms_aGlyphData);
+		UploadGlyph(pSizeData, 0, SlotID, Chr, ms_aGlyphData);
 		
 		if(OutlineThickness == 1)
 		{
 			Grow(ms_aGlyphData, ms_aGlyphDataOutlined, SlotW, SlotH);
-			UploadGlyph(pSizeData, 1, SlotId, Chr, ms_aGlyphDataOutlined);
+			UploadGlyph(pSizeData, 1, SlotID, Chr, ms_aGlyphDataOutlined);
 		}
 		else
 		{
-			Grow(ms_aGlyphData, ms_aGlyphDataOutlined, SlotW, SlotH);
-			Grow(ms_aGlyphDataOutlined, ms_aGlyphData, SlotW, SlotH);
-			UploadGlyph(pSizeData, 1, SlotId, Chr, ms_aGlyphData);
+			for(int i = OutlineThickness; i > 0; i-=2)
+			{
+				Grow(ms_aGlyphData, ms_aGlyphDataOutlined, SlotW, SlotH);
+				Grow(ms_aGlyphDataOutlined, ms_aGlyphData, SlotW, SlotH);
+			}
+			UploadGlyph(pSizeData, 1, SlotID, Chr, ms_aGlyphData);
 		}
 		
 		// set char info
 		{
-			CFontChar *pFontchr = &pSizeData->m_aCharacters[SlotId];
+			CFontChar *pFontchr = &pSizeData->m_aCharacters[SlotID];
 			float Scale = 1.0f/pSizeData->m_FontSize;
 			float Uscale = 1.0f/pSizeData->m_TextureWidth;
 			float Vscale = 1.0f/pSizeData->m_TextureHeight;
 			int Height = pBitmap->rows + OutlineThickness*2 + 2; // ignore_convention
 			int Width = pBitmap->width + OutlineThickness*2 + 2; // ignore_convention
 			
-			pFontchr->m_Id = Chr;
+			pFontchr->m_ID = Chr;
 			pFontchr->m_Height = Height * Scale;
 			pFontchr->m_Width = Width * Scale;
 			pFontchr->m_OffsetX = (pFont->m_FtFace->glyph->bitmap_left-1) * Scale; // ignore_convention
 			pFontchr->m_OffsetY = (pSizeData->m_FontSize - pFont->m_FtFace->glyph->bitmap_top) * Scale; // ignore_convention
 			pFontchr->m_AdvanceX = (pFont->m_FtFace->glyph->advance.x>>6) * Scale; // ignore_convention
 			
-			pFontchr->m_aUvs[0] = (SlotId%pSizeData->m_NumXChars) / (float)(pSizeData->m_NumXChars);
-			pFontchr->m_aUvs[1] = (SlotId/pSizeData->m_NumXChars) / (float)(pSizeData->m_NumYChars);
+			pFontchr->m_aUvs[0] = (SlotID%pSizeData->m_NumXChars) / (float)(pSizeData->m_NumXChars);
+			pFontchr->m_aUvs[1] = (SlotID/pSizeData->m_NumXChars) / (float)(pSizeData->m_NumYChars);
 			pFontchr->m_aUvs[2] = pFontchr->m_aUvs[0] + Width*Uscale;
 			pFontchr->m_aUvs[3] = pFontchr->m_aUvs[1] + Height*Vscale;
 		}
 		
-		return SlotId;
+		return SlotID;
 	}
 
 	CFontChar *GetChar(CFont *pFont, CFontSizeData *pSizeData, int Chr)
@@ -387,7 +396,7 @@ class CTextRender : public IEngineTextRender
 		int i;
 		for(i = 0; i < pSizeData->m_CurrentCharacter; i++)
 		{
-			if(pSizeData->m_aCharacters[i].m_Id == Chr)
+			if(pSizeData->m_aCharacters[i].m_ID == Chr)
 			{
 				pFontchr = &pSizeData->m_aCharacters[i];
 				break;
@@ -510,7 +519,7 @@ public:
 		return Cursor.m_X;
 	}
 	
-	virtual float TextLineCount(void *pFontSetV, float Size, const char *pText, int LineWidth)
+	virtual int TextLineCount(void *pFontSetV, float Size, const char *pText, float LineWidth)
 	{
 		CTextCursor Cursor;
 		SetCursor(&Cursor, 0, 0, Size, 0);
@@ -541,7 +550,8 @@ public:
 		int ActualSize;
 		int i;
 		int GotNewLine = 0;
-		float DrawX, DrawY;
+		float DrawX = 0.0f, DrawY = 0.0f;
+		int LineCount = 0;
 		float CursorX, CursorY;
 		const char *pEnd;
 
@@ -552,14 +562,14 @@ public:
 		
 		FakeToScreenX = (Graphics()->ScreenWidth()/(ScreenX1-ScreenX0));
 		FakeToScreenY = (Graphics()->ScreenHeight()/(ScreenY1-ScreenY0));
-		ActualX = pCursor->m_X * FakeToScreenX;
-		ActualY = pCursor->m_Y * FakeToScreenY;
+		ActualX = (int)(pCursor->m_X * FakeToScreenX);
+		ActualY = (int)(pCursor->m_Y * FakeToScreenY);
 
 		CursorX = ActualX / FakeToScreenX;
 		CursorY = ActualY / FakeToScreenY;
 
 		// same with size
-		ActualSize = Size * FakeToScreenY;
+		ActualSize = (int)(Size * FakeToScreenY);
 		Size = ActualSize / FakeToScreenY;
 
 		// fetch pFont data
@@ -571,6 +581,8 @@ public:
 
 		pSizeData = GetSize(pFont, ActualSize);
 		RenderSetup(pFont, ActualSize);
+
+		float Scale = 1/pSizeData->m_FontSize;
 		
 		// set length
 		if(Length < 0)
@@ -589,6 +601,7 @@ public:
 			const char *pEnd = pCurrent+Length;
 			DrawX = CursorX;
 			DrawY = CursorY;
+			LineCount = pCursor->m_LineCount;
 
 			if(pCursor->m_Flags&TEXTFLAG_RENDER)
 			{
@@ -606,7 +619,7 @@ public:
 					Graphics()->SetColor(m_TextR, m_TextG, m_TextB, m_TextA);
 			}
 
-			while(pCurrent < pEnd)
+			while(pCurrent < pEnd && (pCursor->m_MaxLines < 1 || LineCount <= pCursor->m_MaxLines))
 			{
 				int NewLine = 0;
 				const char *pBatchEnd = pEnd;
@@ -665,7 +678,9 @@ public:
 						DrawY += Size;
 						DrawX = (int)(DrawX * FakeToScreenX) / FakeToScreenX; // realign
 						DrawY = (int)(DrawY * FakeToScreenY) / FakeToScreenY;
-						++pCursor->m_LineCount;
+						++LineCount;
+						if(pCursor->m_MaxLines > 0 && LineCount > pCursor->m_MaxLines)
+							break;
 						continue;
 					}
 
@@ -673,21 +688,20 @@ public:
 
 					if(pChr)
 					{
+						Advance = pChr->m_AdvanceX + Kerning(pFont, Character, Nextcharacter)*Scale;
+						if(pCursor->m_Flags&TEXTFLAG_STOP_AT_END && DrawX+Advance*Size-pCursor->m_StartX > pCursor->m_LineWidth)
+						{
+							// we hit the end of the line, no more to render or count
+							pCurrent = pEnd;
+							break;
+						}
+
 						if(pCursor->m_Flags&TEXTFLAG_RENDER)
 						{
 							Graphics()->QuadsSetSubset(pChr->m_aUvs[0], pChr->m_aUvs[1], pChr->m_aUvs[2], pChr->m_aUvs[3]);
 							IGraphics::CQuadItem QuadItem(DrawX+pChr->m_OffsetX*Size, DrawY+pChr->m_OffsetY*Size, pChr->m_Width*Size, pChr->m_Height*Size);
 							Graphics()->QuadsDrawTL(&QuadItem, 1);
 						}
-
-						Advance = pChr->m_AdvanceX + Kerning(pFont, Character, Nextcharacter)/Size;
-					}
-									
-					if(pCursor->m_Flags&TEXTFLAG_STOP_AT_END && DrawX+(Advance+pChr->m_Width)*Size-pCursor->m_StartX > pCursor->m_LineWidth)
-					{
-						// we hit the end of the line, no more to render or count
-						pCurrent = pEnd;
-						break;
 					}
 
 					DrawX += Advance*Size;
@@ -701,7 +715,7 @@ public:
 					GotNewLine = 1;
 					DrawX = (int)(DrawX * FakeToScreenX) / FakeToScreenX; // realign
 					DrawY = (int)(DrawY * FakeToScreenY) / FakeToScreenY;				
-					++pCursor->m_LineCount;
+					++LineCount;
 				}
 			}
 
@@ -710,6 +724,7 @@ public:
 		}
 
 		pCursor->m_X = DrawX;
+		pCursor->m_LineCount = LineCount;
 		
 		if(GotNewLine)
 			pCursor->m_Y = DrawY;

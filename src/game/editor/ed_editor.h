@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_EDITOR_ED_EDITOR_H
 #define GAME_EDITOR_ED_EDITOR_H
 
@@ -6,6 +7,8 @@
 #include <base/math.h>
 #include <base/tl/array.h>
 #include <base/tl/algorithm.h>
+#include <base/tl/sorted_array.h>
+#include <base/tl/string.h>
 
 #include <math.h>
 #include <game/mapitems.h>
@@ -123,6 +126,7 @@ public:
 		m_pTypeName = "(invalid)";
 		m_Visible = true;
 		m_Readonly = false;
+		m_SaveToMap = true;
 		m_Flags = 0;
 		m_pEditor = 0;
 	}
@@ -155,6 +159,7 @@ public:
 
 	bool m_Readonly;
 	bool m_Visible;
+	bool m_SaveToMap;
 };
 
 class CLayerGroup
@@ -179,6 +184,7 @@ public:
 	const char *m_pName;
 	bool m_GameGroup;
 	bool m_Visible;
+	bool m_SaveToMap;
 	
 	CLayerGroup();
 	~CLayerGroup();
@@ -229,7 +235,7 @@ public:
 	CEditorImage(CEditor *pEditor)
 	{
 		m_pEditor = pEditor;
-		m_TexId = -1;
+		m_TexID = -1;
 		m_aName[0] = 0;
 		m_External = 0;
 		m_Width = 0;
@@ -242,7 +248,7 @@ public:
 	
 	void AnalyseTileFlags();
 	
-	int m_TexId;
+	int m_TexID;
 	int m_External;
 	char m_aName[128];
 	unsigned char m_aTileFlags[256];
@@ -273,6 +279,8 @@ public:
 		m_lEnvelopes.add(e);
 		return e;
 	}
+
+	void DeleteEnvelope(int Index);
 	
 	CLayerGroup *NewGroup()
 	{
@@ -315,7 +323,7 @@ public:
 
 	// io	
 	int Save(class IStorage *pStorage, const char *pFilename);
-	int Load(class IStorage *pStorage, const char *pFilename);
+	int Load(class IStorage *pStorage, const char *pFilename, int StorageType);
 };
 
 
@@ -337,6 +345,7 @@ enum
 	PROPTYPE_COLOR,
 	PROPTYPE_IMAGE,
 	PROPTYPE_ENVELOPE,
+	PROPTYPE_SHIFT,
 };
 
 typedef struct
@@ -352,6 +361,7 @@ public:
 	~CLayerTiles();
 
 	void Resize(int NewW, int NewH);
+	void Shift(int Direction);
 
 	void MakePalette();
 	virtual void Render();
@@ -368,6 +378,7 @@ public:
 	virtual void BrushDraw(CLayer *pBrush, float wx, float wy);
 	virtual void BrushFlipX();
 	virtual void BrushFlipY();
+	virtual void BrushRotate(float Amount);
 	
 	virtual int RenderProperties(CUIRect *pToolbox);
 
@@ -378,11 +389,12 @@ public:
 
 	void GetSize(float *w, float *h) { *w = m_Width*32.0f;  *h = m_Height*32.0f; }
 	
-	int m_TexId;
+	int m_TexID;
 	int m_Game;
 	int m_Image;
 	int m_Width;
 	int m_Height;
+	CColor m_Color;
 	CTile *m_pTiles;
 };
 
@@ -426,15 +438,19 @@ class CEditor : public IEditor
 {
 	class IInput *m_pInput;
 	class IClient *m_pClient;
+	class IConsole *m_pConsole;
 	class IGraphics *m_pGraphics;
 	class ITextRender *m_pTextRender;
+	class IStorage *m_pStorage;
 	CRenderTools m_RenderTools;
 	CUI m_UI;
 public:
 	class IInput *Input() { return m_pInput; };
 	class IClient *Client() { return m_pClient; };
+	class IConsole *Console() { return m_pConsole; };
 	class IGraphics *Graphics() { return m_pGraphics; };
 	class ITextRender *TextRender() { return m_pTextRender; };
+	class IStorage *Storage() { return m_pStorage; };
 	CUI *UI() { return &m_UI; }
 	CRenderTools *RenderTools() { return &m_RenderTools; }
 
@@ -450,6 +466,22 @@ public:
 		m_pTooltip = 0;
 
 		m_aFileName[0] = 0;
+		m_ValidSaveFilename = false;
+		
+		m_FileDialogStorageType = 0;
+		m_pFileDialogTitle = 0;
+		m_pFileDialogButtonText = 0;
+		m_pFileDialogUser = 0;
+		m_aFileDialogFileName[0] = 0;
+		m_aFileDialogCurrentFolder[0] = 0;
+		m_aFileDialogCurrentLink[0] = 0;
+		m_pFileDialogPath = m_aFileDialogCurrentFolder;
+		m_aFileDialogActivate = false;
+		m_FileDialogScrollValue = 0.0f;
+		m_FilesSelectedIndex = -1;
+		m_FilesStartAt = 0;
+		m_FilesCur = 0;
+		m_FilesStopAt = 999;
 
 		m_WorldOffsetX = 0;
 		m_WorldOffsetY = 0;
@@ -487,14 +519,15 @@ public:
 	virtual void Init();
 	virtual void UpdateAndRender();
 	
-	void InvokeFileDialog(int ListdirType, const char *pTitle, const char *pButtonText,
+	void FilelistPopulate(int StorageType);
+	void InvokeFileDialog(int StorageType, int FileType, const char *pTitle, const char *pButtonText,
 		const char *pBasepath, const char *pDefaultName,
-		void (*pfnFunc)(const char *pFilename, void *pUser), void *pUser);
+		void (*pfnFunc)(const char *pFilename, int StorageType, void *pUser), void *pUser);
 	
 	void Reset(bool CreateDefault=true);
 	int Save(const char *pFilename);
-	int Load(const char *pFilename);
-	int Append(const char *pFilename);
+	int Load(const char *pFilename, int StorageType);
+	int Append(const char *pFilename, int StorageType);
 	void Render();
 
 	CQuad *GetSelectedQuad();
@@ -502,13 +535,53 @@ public:
 	CLayer *GetSelectedLayer(int Index);
 	CLayerGroup *GetSelectedGroup();
 	
-	int DoProperties(CUIRect *pToolbox, CProperty *pProps, int *pIds, int *pNewVal);
+	int DoProperties(CUIRect *pToolbox, CProperty *pProps, int *pIDs, int *pNewVal);
 	
 	int m_Mode;
 	int m_Dialog;
 	const char *m_pTooltip;
 
 	char m_aFileName[512];
+	bool m_ValidSaveFilename;
+
+	enum
+	{
+		FILETYPE_MAP,
+		FILETYPE_IMG,
+
+		MAX_PATH_LENGTH = 512
+	};
+	
+	int m_FileDialogStorageType;
+	const char *m_pFileDialogTitle;
+	const char *m_pFileDialogButtonText;
+	void (*m_pfnFileDialogFunc)(const char *pFileName, int StorageType, void *pUser);
+	void *m_pFileDialogUser;
+	char m_aFileDialogFileName[MAX_PATH_LENGTH];
+	char m_aFileDialogCurrentFolder[MAX_PATH_LENGTH];
+	char m_aFileDialogCurrentLink[MAX_PATH_LENGTH];
+	char *m_pFileDialogPath;
+	bool m_aFileDialogActivate;
+	int m_FileDialogFileType;
+	float m_FileDialogScrollValue;
+	int m_FilesSelectedIndex;
+
+	struct CFilelistItem
+	{
+		char m_aFilename[128];
+		char m_aName[128];
+		bool m_IsDir;
+		bool m_IsLink;
+		int m_StorageType;
+		
+		bool operator<(const CFilelistItem &Other) { return !str_comp(m_aFilename, "..") ? true : !str_comp(Other.m_aFilename, "..") ? false :
+														m_IsDir && !Other.m_IsDir ? true : !m_IsDir && Other.m_IsDir ? false :
+														str_comp_filenames(m_aFilename, Other.m_aFilename) < 0; }
+	};
+	sorted_array<CFilelistItem> m_FileList;
+	int m_FilesStartAt;
+	int m_FilesCur;
+	int m_FilesStopAt;
 
 	float m_WorldOffsetX;
 	float m_WorldOffsetY;
@@ -570,34 +643,38 @@ public:
 
 	void RenderBackground(CUIRect View, int Texture, float Size, float Brightness);
 
-	void UiInvokePopupMenu(void *pId, int Flags, float x, float y, float w, float h, int (*pfnFunc)(CEditor *pEditor, CUIRect Rect), void *pExtra=0);
+	void UiInvokePopupMenu(void *pID, int Flags, float X, float Y, float W, float H, int (*pfnFunc)(CEditor *pEditor, CUIRect Rect), void *pExtra=0);
 	void UiDoPopupMenu();
 	
-	int UiDoValueSelector(void *pId, CUIRect *r, const char *pLabel, const char *pToolTip, int Current, int Min, int Max, float Scale);
+	int UiDoValueSelector(void *pID, CUIRect *pRect, const char *pLabel, int Current, int Min, int Max, int Step, float Scale, const char *pToolTip);
 
 	static int PopupGroup(CEditor *pEditor, CUIRect View);
 	static int PopupLayer(CEditor *pEditor, CUIRect View);
 	static int PopupQuad(CEditor *pEditor, CUIRect View);
 	static int PopupPoint(CEditor *pEditor, CUIRect View);
 	static int PopupSelectImage(CEditor *pEditor, CUIRect View);
+	static int PopupSelectGametileOp(CEditor *pEditor, CUIRect View);
 	static int PopupImage(CEditor *pEditor, CUIRect View);
 	static int PopupMenuFile(CEditor *pEditor, CUIRect View);
 
 
 	void PopupSelectImageInvoke(int Current, float x, float y);
 	int PopupSelectImageResult();
+
+	void PopupSelectGametileOpInvoke(float x, float y);
+	int PopupSelectGameTileOpResult();
 	
-	vec4 ButtonColorMul(const void *pId);
+	vec4 ButtonColorMul(const void *pID);
 
 	void DoQuadPoint(CQuad *pQuad, int QuadIndex, int v);
 	void DoMapEditor(CUIRect View, CUIRect Toolbar);
 	void DoToolbar(CUIRect Toolbar);
 	void DoQuad(CQuad *pQuad, int Index);
-	float UiDoScrollbarV(const void *id, const CUIRect *pRect, float Current);
-	vec4 GetButtonColor(const void *id, int Checked);
+	float UiDoScrollbarV(const void *pID, const CUIRect *pRect, float Current);
+	vec4 GetButtonColor(const void *pID, int Checked);
 	
-	static void ReplaceImage(const char *pFilename, void *pUser);
-	static void AddImage(const char *pFilename, void *pUser);
+	static void ReplaceImage(const char *pFilename, int StorageType, void *pUser);
+	static void AddImage(const char *pFilename, int StorageType, void *pUser);
 	
 	void RenderImages(CUIRect Toolbox, CUIRect Toolbar, CUIRect View);
 	void RenderLayers(CUIRect Toolbox, CUIRect Toolbar, CUIRect View);
@@ -608,8 +685,23 @@ public:
 	void RenderMenubar(CUIRect Menubar);
 	void RenderFileDialog();
 
-	void AddFileDialogEntry(const char *pName, CUIRect *pView);
+	void AddFileDialogEntry(int Index, CUIRect *pView);
 	void SortImages();
+	static void ExtractName(const char *pFileName, char *pName, int BufferSize)
+	{
+		const char *pExtractedName = pFileName;
+		const char *pEnd = 0;
+		for(; *pFileName; ++pFileName)
+		{
+			if(*pFileName == '/' || *pFileName == '\\')
+				pExtractedName = pFileName+1;
+			else if(*pFileName == '.')
+				pEnd = pFileName;
+		}
+
+		int Length = pEnd > pExtractedName ? min(BufferSize, (int)(pEnd-pExtractedName+1)) : BufferSize;
+		str_copy(pName, pExtractedName, Length);
+	}
 };
 
 // make sure to inline this function

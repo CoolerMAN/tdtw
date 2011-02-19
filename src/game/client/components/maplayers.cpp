@@ -1,8 +1,11 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
-#include <stdio.h>
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/graphics.h>
-#include <engine/keys.h> //temp
+#include <engine/keys.h>
+#include <engine/demo.h>
+#include <engine/serverbrowser.h>
 #include <engine/shared/config.h>
+#include <engine/storage.h>
 
 #include <game/layers.h>
 #include <game/client/gameclient.h>
@@ -59,7 +62,22 @@ void CMapLayers::EnvelopeEval(float TimeOffset, int Env, float *pChannels, void 
 		return;
 	
 	CMapItemEnvelope *pItem = (CMapItemEnvelope *)pThis->m_pLayers->Map()->GetItem(Start+Env, 0, 0);
-	pThis->RenderTools()->RenderEvalEnvelope(pPoints+pItem->m_StartPoint, pItem->m_NumPoints, 4, pThis->Client()->LocalTime()+TimeOffset, pChannels);
+	
+	if(pThis->Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	{
+		const IDemoPlayer::CInfo *pInfo = pThis->DemoPlayer()->BaseInfo();
+		static float Time = 0;
+		static float LastLocalTime = pThis->Client()->LocalTime();
+		
+		if(!pInfo->m_Paused)
+			Time += (pThis->Client()->LocalTime()-LastLocalTime)*pInfo->m_Speed;
+		
+		pThis->RenderTools()->RenderEvalEnvelope(pPoints+pItem->m_StartPoint, pItem->m_NumPoints, 4, Time+TimeOffset, pChannels);
+		
+		LastLocalTime = pThis->Client()->LocalTime();
+	}
+	else
+		pThis->RenderTools()->RenderEvalEnvelope(pPoints+pItem->m_StartPoint, pItem->m_NumPoints, 4, pThis->Client()->LocalTime()+TimeOffset, pChannels);
 }
 
 void CMapLayers::OnRender()
@@ -127,20 +145,30 @@ void CMapLayers::OnRender()
 					Render = true;
 			}
 			
-			if(pLayer->m_Type == LAYERTYPE_TILES && Input()->KeyPressed(KEY_KP0))
+			if(Render && pLayer->m_Type == LAYERTYPE_TILES && Input()->KeyPressed(KEY_LCTRL) && Input()->KeyPressed(KEY_LSHIFT) && Input()->KeyDown(KEY_KP0))
 			{
 				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
 				CTile *pTiles = (CTile *)m_pLayers->Map()->GetData(pTMap->m_Data);
-				char buf[256];
-				str_format(buf, sizeof(buf), "%d%d_%dx%d", g, l, pTMap->m_Width, pTMap->m_Height);
-				FILE *f = fopen(buf, "w");
-				for(int y = 0; y < pTMap->m_Height; y++)
+				CServerInfo CurrentServerInfo;
+				Client()->GetServerInfo(&CurrentServerInfo);
+				char aFilename[256];
+				str_format(aFilename, sizeof(aFilename), "dumps/tilelayer_dump_%s-%d-%d-%dx%d.txt", CurrentServerInfo.m_aMap, g, l, pTMap->m_Width, pTMap->m_Height);
+				IOHANDLE File = Storage()->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
+				if(File)
 				{
-					for(int x = 0; x < pTMap->m_Width; x++)
-						fprintf(f, "%d,", pTiles[y*pTMap->m_Width + x].m_Index);
-					fprintf(f, "\n");
+					#if defined(CONF_FAMILY_WINDOWS)
+						static const char Newline[] = "\r\n";
+					#else
+						static const char Newline[] = "\n";
+					#endif
+					for(int y = 0; y < pTMap->m_Height; y++)
+					{
+						for(int x = 0; x < pTMap->m_Width; x++)
+							io_write(File, &(pTiles[y*pTMap->m_Width + x].m_Index), sizeof(pTiles[y*pTMap->m_Width + x].m_Index));
+						io_write(File, Newline, sizeof(Newline)-1);
+					}
+					io_close(File);
 				}
-				fclose(f);
 			}			
 			
 			if(Render && !IsGameLayer && !g_Config.m_GfxFullClear || (g_Config.m_GfxFullClear && IsGameLayer))
@@ -159,12 +187,13 @@ void CMapLayers::OnRender()
 					}
 					else
 						Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pTMap->m_Image));
-						
+					
 					CTile *pTiles = (CTile *)m_pLayers->Map()->GetData(pTMap->m_Data);
 					Graphics()->BlendNone();
-					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, vec4(1,1,1,1), TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE);
+					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f);
+					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE);
 					Graphics()->BlendNormal();
-					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, vec4(1,1,1,1), TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT);
+					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT);
 				}
 				else if(pLayer->m_Type == LAYERTYPE_QUADS)
 				{

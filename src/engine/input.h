@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_INPUT_H
 #define ENGINE_INPUT_H
 
@@ -73,7 +74,7 @@ public:
 	virtual void MouseModeAbsolute() = 0;
 	virtual int MouseDoubleClick() = 0;
 	
-	virtual void MouseRelative(int *x, int *y) = 0;
+	virtual void MouseRelative(float *x, float *y) = 0;
 };
 
 
@@ -82,7 +83,7 @@ class IEngineInput : public IInput
 	MACRO_INTERFACE("engineinput", 0)
 public:
 	virtual void Init() = 0;
-	virtual void Update() = 0;
+	virtual int Update() = 0;
 };
 
 extern IEngineInput *CreateEngineInput();

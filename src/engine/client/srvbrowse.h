@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_CLIENT_SRVBROWSE_H
 #define ENGINE_CLIENT_SRVBROWSE_H
 
@@ -30,7 +31,9 @@ public:
 
 	// interface functions
 	void Refresh(int Type);
+	bool IsRefreshing() const;
 	bool IsRefreshingMasters() const;
+	int LoadingProgression() const;
 
 	int NumServers() const { return m_NumServers; }
 
@@ -51,6 +54,7 @@ public:
 private:
 	CNetClient *m_pNetClient;
 	IMasterServer *m_pMasterServer;
+	class IConsole *m_pConsole;
 	char m_aNetVersion[128];
 
 	CHeap m_ServerlistHeap;

@@ -1,6 +1,5 @@
-TDTW copyright (c) 2010 CoolerMAN, DeRK
-
-Copyright (c) 2010 Magnus Auvinen
+Copyright (c) 2011 Magnus Auvinen
+TDTW copyright (c) 2011 CoolerMAN, DeRK, Soullibra, Psycho.God
 
 
 This software is provided 'as-is', without any express or implied

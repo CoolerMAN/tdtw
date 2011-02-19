@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/shared/config.h>
 
 #include <base/math.h>
@@ -11,6 +12,7 @@
 
 CCamera::CCamera()
 {
+	m_WasSpectator = false;
 }
 
 void CCamera::OnRender()
@@ -20,10 +22,21 @@ void CCamera::OnRender()
 
 	// update camera center		
 	if(m_pClient->m_Snap.m_Spectate)
+	{
+		if(!m_WasSpectator)
+		{
+			m_pClient->m_pControls->ClampMousePos();
+			m_WasSpectator = true;
+		}
 		m_Center = m_pClient->m_pControls->m_MousePos;
+	}
 	else
 	{
-
+		if(m_WasSpectator)
+		{
+			m_pClient->m_pControls->ClampMousePos();
+			m_WasSpectator = false;
+		}
 		float l = length(m_pClient->m_pControls->m_MousePos);
 		float DeadZone = g_Config.m_ClMouseDeadzone;
 		float FollowFactor = g_Config.m_ClMouseFollowfactor/100.0f;

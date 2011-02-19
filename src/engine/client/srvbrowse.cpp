@@ -1,6 +1,8 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <algorithm> // sort
 
+#include <base/math.h>
 #include <base/system.h>
 #include <engine/shared/network.h>
 #include <engine/shared/protocol.h>
@@ -9,6 +11,7 @@
 #include <engine/shared/engine.h>
 
 #include <engine/masterserver.h>
+#include <engine/console.h>
 #include <engine/config.h>
 
 #include <mastersrv/mastersrv.h>
@@ -62,6 +65,7 @@ void CServerBrowser::SetBaseInfo(class CNetClient *pClient, const char *pNetVers
 	m_pNetClient = pClient;
 	str_copy(m_aNetVersion, pNetVersion, sizeof(m_aNetVersion));
 	m_pMasterServer = Kernel()->RequestInterface<IMasterServer>();
+	m_pConsole = Kernel()->RequestInterface<IConsole>();
 	IConfig *pConfig = Kernel()->RequestInterface<IConfig>();
 	if(pConfig)
 		pConfig->RegisterCallback(ConfigSaveCallback, this);
@@ -79,7 +83,9 @@ bool CServerBrowser::SortCompareName(int Index1, int Index2) const
 {
 	CServerEntry *a = m_ppServerlist[Index1];
 	CServerEntry *b = m_ppServerlist[Index2];
-	return str_comp(a->m_Info.m_aName, b->m_Info.m_aName) < 0;
+	//	make sure empty entries are listed last
+	return (a->m_GotInfo && b->m_GotInfo) || (!a->m_GotInfo && !b->m_GotInfo) ?  str_comp(a->m_Info.m_aName, b->m_Info.m_aName) < 0 :
+			a->m_GotInfo ? true : false;
 }
 
 bool CServerBrowser::SortCompareMap(int Index1, int Index2) const
@@ -362,7 +368,7 @@ CServerBrowser::CServerEntry *CServerBrowser::Add(const NETADDR &Addr)
 	str_format(pEntry->m_Info.m_aAddress, sizeof(pEntry->m_Info.m_aAddress), "%d.%d.%d.%d:%d",
 		Addr.ip[0], Addr.ip[1], Addr.ip[2],
 		Addr.ip[3], Addr.port);
-	str_format(pEntry->m_Info.m_aName, sizeof(pEntry->m_Info.m_aName), "\255%d.%d.%d.%d:%d", // the \255 is to make sure that it's sorted last
+	str_format(pEntry->m_Info.m_aName, sizeof(pEntry->m_Info.m_aName), "%d.%d.%d.%d:%d",
 		Addr.ip[0], Addr.ip[1], Addr.ip[2],
 		Addr.ip[3], Addr.port);
 
@@ -435,9 +441,9 @@ void CServerBrowser::Set(const NETADDR &Addr, int Type, int Token, const CServer
 		{
 			SetInfo(pEntry, *pInfo);
 			if(m_ServerlistType == IServerBrowser::TYPE_LAN)
-				pEntry->m_Info.m_Latency = (time_get()-m_BroadcastTime)*1000/time_freq();
+				pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-m_BroadcastTime)*1000/time_freq()), 999);
 			else
-				pEntry->m_Info.m_Latency = (time_get()-pEntry->m_RequestTime)*1000/time_freq();
+				pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-pEntry->m_RequestTime)*1000/time_freq()), 999);
 			RemoveRequest(pEntry);
 		}
 	}
@@ -449,9 +455,9 @@ void CServerBrowser::Set(const NETADDR &Addr, int Type, int Token, const CServer
 			SetInfo(pEntry, *pInfo);
 
 			if(m_ServerlistType == IServerBrowser::TYPE_LAN)
-				pEntry->m_Info.m_Latency = (time_get()-m_BroadcastTime)*1000/time_freq();
+				pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-m_BroadcastTime)*1000/time_freq()), 999);
 			else
-				pEntry->m_Info.m_Latency = (time_get()-pEntry->m_RequestTime)*1000/time_freq();
+				pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-pEntry->m_RequestTime)*1000/time_freq()), 999);
 			RemoveRequest(pEntry);
 		}
 	}
@@ -512,7 +518,7 @@ void CServerBrowser::Refresh(int Type)
 		}
 
 		if(g_Config.m_Debug)
-			dbg_msg("client", "broadcasting for servers");
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client_srvbrowse", "broadcasting for servers");
 	}
 	else if(Type == IServerBrowser::TYPE_INTERNET)
 		m_NeedRefresh = 1;
@@ -525,29 +531,27 @@ void CServerBrowser::Refresh(int Type)
 
 void CServerBrowser::RequestImpl(const NETADDR &Addr, CServerEntry *pEntry) const
 {
-	//unsigned char buffer[sizeof(SERVERBROWSE_GETINFO)+1];
+	unsigned char Buffer[sizeof(SERVERBROWSE_GETINFO)+1];
 	CNetChunk Packet;
 
 	if(g_Config.m_Debug)
 	{
-		dbg_msg("client", "requesting server info from %d.%d.%d.%d:%d",
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf),"requesting server info from %d.%d.%d.%d:%d",
 			Addr.ip[0], Addr.ip[1], Addr.ip[2],
 			Addr.ip[3], Addr.port);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client_srvbrowse", aBuf);
 	}
 
-	/*mem_copy(buffer, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
-	buffer[sizeof(SERVERBROWSE_GETINFO)] = current_token;*/
+	mem_copy(Buffer, SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
+	Buffer[sizeof(SERVERBROWSE_GETINFO)] = m_CurrentToken;
 
 	Packet.m_ClientID = -1;
 	Packet.m_Address = Addr;
 	Packet.m_Flags = NETSENDFLAG_CONNLESS;
-	/*p.data_size = sizeof(buffer);
-	p.data = buffer;
-	netclient_send(net, &p);*/
-
-	// send old request style aswell
-	Packet.m_DataSize = sizeof(SERVERBROWSE_OLD_GETINFO);
-	Packet.m_pData = SERVERBROWSE_OLD_GETINFO;
+	Packet.m_DataSize = sizeof(Buffer);
+	Packet.m_pData = Buffer;
+	
 	m_pNetClient->Send(&Packet);
 
 	if(pEntry)
@@ -593,7 +597,7 @@ void CServerBrowser::Update()
 		}
 
 		if(g_Config.m_Debug)
-			dbg_msg("client", "requesting server list");
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client_srvbrowse", "requesting server list");
 	}
 
 	// do timeouts
@@ -609,7 +613,6 @@ void CServerBrowser::Update()
 		{
 			// timeout
 			RemoveRequest(pEntry);
-			m_NumRequests--;
 		}
 
 		pEntry = pNext;
@@ -674,7 +677,11 @@ void CServerBrowser::AddFavorite(const NETADDR &Addr)
 		pEntry->m_Info.m_Favorite = 1;
 
     if(g_Config.m_Debug)
-        dbg_msg("", "added fav, %d.%d.%d.%d:%d", Addr.ip[0], Addr.ip[1], Addr.ip[2], Addr.ip[3], Addr.port);
+	{
+		char aBuf[256];
+        str_format(aBuf, sizeof(aBuf), "added fav, %d.%d.%d.%d:%d", Addr.ip[0], Addr.ip[1], Addr.ip[2], Addr.ip[3], Addr.port);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client_srvbrowse", aBuf);
+	}
 }
 
 void CServerBrowser::RemoveFavorite(const NETADDR &Addr)
@@ -698,10 +705,25 @@ void CServerBrowser::RemoveFavorite(const NETADDR &Addr)
 	}
 }
 
+bool CServerBrowser::IsRefreshing() const
+{
+	return m_pFirstReqServer != 0;
+}
 
 bool CServerBrowser::IsRefreshingMasters() const
 {
 	return m_pMasterServer->IsRefreshing();
+}
+
+
+int CServerBrowser::LoadingProgression() const
+{
+	if(m_NumServers == 0)
+		return 0;
+	
+	int Servers = m_NumServers;
+	int Loaded = m_NumServers-m_NumRequests;
+	return 100.0f * Loaded/Servers;
 }
 
 

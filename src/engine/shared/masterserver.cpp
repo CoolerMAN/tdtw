@@ -1,5 +1,6 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
-#include <stdio.h>
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include <stdio.h>	// sscanf
 
 #include <base/system.h>
 #include <engine/masterserver.h>
@@ -119,7 +120,7 @@ public:
 			return -1;
 		
 		// try to open file
-		File = pStorage->OpenFile("masters.cfg", IOFLAG_READ);
+		File = pStorage->OpenFile("masters.cfg", IOFLAG_READ, IStorage::TYPE_SAVE);
 		if(!File)
 			return -1;
 		
@@ -165,7 +166,7 @@ public:
 			return -1;
 			
 		// try to open file
-		File = pStorage->OpenFile("masters.cfg", IOFLAG_WRITE);
+		File = pStorage->OpenFile("masters.cfg", IOFLAG_WRITE, IStorage::TYPE_SAVE);
 		if(!File)
 			return -1;
 

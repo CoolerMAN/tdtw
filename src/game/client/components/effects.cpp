@@ -1,4 +1,8 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include <engine/demo.h>
+#include <engine/shared/config.h>
+
 #include <game/generated/client_data.h>
 
 #include <game/client/components/particles.h>
@@ -165,15 +169,20 @@ void CEffects::PlayerSpawn(vec2 Pos)
 	m_pClient->m_pSounds->Play(CSounds::CHN_WORLD, SOUND_PLAYER_SPAWN, 1.0f, Pos);
 }
 
-void CEffects::PlayerDeath(vec2 Pos, int Cid)
+void CEffects::PlayerDeath(vec2 Pos, int ClientID)
 {
 	vec3 BloodColor(1.0f,1.0f,1.0f);
 
-	if(Cid >= 0)	
+	if(ClientID >= 0)	
 	{
-		const CSkins::CSkin *s = m_pClient->m_pSkins->Get(m_pClient->m_aClients[Cid].m_SkinId);
-		if(s)
-			BloodColor = s->m_BloodColor;
+		if(m_pClient->m_aClients[ClientID].m_UseCustomColor)
+			BloodColor = m_pClient->m_pSkins->GetColorV3(m_pClient->m_aClients[ClientID].m_ColorBody);
+		else
+		{
+			const CSkins::CSkin *s = m_pClient->m_pSkins->Get(m_pClient->m_aClients[ClientID].m_SkinID);
+			if(s)
+				BloodColor = s->m_BloodColor;
+		}
 	}
 	
 	for(int i = 0; i < 64; i++)
@@ -259,6 +268,32 @@ void CEffects::OnRender()
 {
 	static int64 LastUpdate100hz = 0;
 	static int64 LastUpdate50hz = 0;
+
+	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	{
+		const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+		
+		if(time_get()-LastUpdate100hz > time_freq()/(100*pInfo->m_Speed))
+		{
+			m_Add100hz = true;
+			LastUpdate100hz = time_get();
+		}
+		else
+			m_Add100hz = false;
+
+		if(time_get()-LastUpdate50hz > time_freq()/(100*pInfo->m_Speed))
+		{
+			m_Add50hz = true;
+			LastUpdate50hz = time_get();
+		}
+		else
+			m_Add50hz = false;
+		
+		if(m_Add50hz)
+			m_pClient->m_pFlow->Update();
+		
+		return;
+	}
 
 	if(time_get()-LastUpdate100hz > time_freq()/100)
 	{

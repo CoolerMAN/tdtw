@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/system.h>
 #include "network.h"
 
@@ -80,16 +81,15 @@ int CNetServer::Drop(int ClientID, const char *pReason)
 	// TODO: insert lots of checks here
 	NETADDR Addr = ClientAddr(ClientID);
 
-	dbg_msg("net_server", "client dropped. cid=%d ip=%d.%d.%d.%d reason=\"%s\"",
+	/*dbg_msg("net_server", "client dropped. cid=%d ip=%d.%d.%d.%d reason=\"%s\"",
 		ClientID,
 		Addr.ip[0], Addr.ip[1], Addr.ip[2], Addr.ip[3],
 		pReason
-		);
+		);*/
+	if(m_pfnDelClient)
+		m_pfnDelClient(ClientID, pReason, m_UserPtr);
 		
 	m_aSlots[ClientID].m_Connection.Disconnect(pReason);
-
-	if(m_pfnDelClient)
-		m_pfnDelClient(ClientID, m_UserPtr);
 		
 	return 0;
 }
@@ -141,7 +141,7 @@ int CNetServer::BanRemove(NETADDR Addr)
 	return -1;
 }
 
-int CNetServer::BanAdd(NETADDR Addr, int Seconds)
+int CNetServer::BanAdd(NETADDR Addr, int Seconds, const char *pReason)
 {
 	int IpHash = (Addr.ip[0]+Addr.ip[1]+Addr.ip[2]+Addr.ip[3])&0xff;
 	int Stamp = -1;
@@ -173,6 +173,7 @@ int CNetServer::BanAdd(NETADDR Addr, int Seconds)
 	// setup the ban info
 	pBan->m_Info.m_Expires = Stamp;
 	pBan->m_Info.m_Addr = Addr;
+	str_copy(pBan->m_Info.m_Reason, pReason, sizeof(pBan->m_Info.m_Reason));
 	
 	// add it to the ban hash
 	MACRO_LIST_LINK_FIRST(pBan, m_aBans[IpHash], m_pHashPrev, m_pHashNext);
@@ -214,10 +215,16 @@ int CNetServer::BanAdd(NETADDR Addr, int Seconds)
 		char Buf[128];
 		NETADDR BanAddr;
 		
-		if(Seconds)
-			str_format(Buf, sizeof(Buf), "you have been banned for %d minutes", Seconds/60);
+		int Mins = (Seconds + 59) / 60;
+		if(Mins)
+		{
+			if(Mins == 1)
+				str_format(Buf, sizeof(Buf), "You have been banned for 1 minute (%s)", pReason);
+			else
+				str_format(Buf, sizeof(Buf), "You have been banned for %d minutes (%s)", Mins, pReason);
+		}
 		else
-			str_format(Buf, sizeof(Buf), "you have been banned for life");
+			str_format(Buf, sizeof(Buf), "You have been banned for life (%s)", pReason);
 		
 		for(int i = 0; i < MaxClients(); i++)
 		{
@@ -297,12 +304,12 @@ int CNetServer::Recv(CNetChunk *pChunk)
 				{
 					int Mins = ((pBan->m_Info.m_Expires - Now)+59)/60;
 					if(Mins == 1)
-						str_format(BanStr, sizeof(BanStr), "banned for %d minute", Mins);
+						str_format(BanStr, sizeof(BanStr), "Banned for 1 minute (%s)", pBan->m_Info.m_Reason);
 					else
-						str_format(BanStr, sizeof(BanStr), "banned for %d minutes", Mins);
+						str_format(BanStr, sizeof(BanStr), "Banned for %d minutes (%s)", Mins, pBan->m_Info.m_Reason);
 				}
 				else
-					str_format(BanStr, sizeof(BanStr), "banned for life");
+					str_format(BanStr, sizeof(BanStr), "Banned for life (%s)", pBan->m_Info.m_Reason);
 				CNetBase::SendControlMsg(m_Socket, &Addr, 0, NET_CTRLMSG_CLOSE, BanStr, str_length(BanStr)+1);
 				continue;
 			}
@@ -354,7 +361,7 @@ int CNetServer::Recv(CNetChunk *pChunk)
 								if(FoundAddr++ >= m_MaxClientsPerIP)
 								{
 									char aBuf[128];
-									str_format(aBuf, sizeof(aBuf), "only %i players with same ip allowed", m_MaxClientsPerIP);
+									str_format(aBuf, sizeof(aBuf), "Only %d players with the same IP are allowed", m_MaxClientsPerIP);
 									CNetBase::SendControlMsg(m_Socket, &Addr, 0, NET_CTRLMSG_CLOSE, aBuf, sizeof(aBuf));
 									return 0;
 								}
@@ -375,7 +382,7 @@ int CNetServer::Recv(CNetChunk *pChunk)
 						
 						if(!Found)
 						{
-							const char FullMsg[] = "server is full";
+							const char FullMsg[] = "This server is full";
 							CNetBase::SendControlMsg(m_Socket, &Addr, 0, NET_CTRLMSG_CLOSE, FullMsg, sizeof(FullMsg));
 						}
 					}
@@ -431,7 +438,7 @@ int CNetServer::Send(CNetChunk *pChunk)
 		}
 		else
 		{
-			Drop(pChunk->m_ClientID, "error sending data");
+			Drop(pChunk->m_ClientID, "Error sending data");
 		}
 	}
 	return 0;

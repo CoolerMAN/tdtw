@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_CONSOLE_H
 #define ENGINE_CONSOLE_H
 
@@ -8,6 +9,13 @@ class IConsole : public IInterface
 {
 	MACRO_INTERFACE("console", 0)
 public:
+
+	enum
+	{
+		OUTPUT_LEVEL_STANDARD=0,
+		OUTPUT_LEVEL_ADDINFO,
+		OUTPUT_LEVEL_DEBUG
+	};
 
 	// TODO: rework this interface to reduce the amount of virtual calls
 	class IResult
@@ -45,13 +53,15 @@ public:
 	virtual void Register(const char *pName, const char *pParams, 
 		int Flags, FCommandCallback pfnFunc, void *pUser, const char *pHelp) = 0;
 	virtual void Chain(const char *pName, FChainCommandCallback pfnChainFunc, void *pUser) = 0;
+	virtual void StoreCommands(bool Store) = 0;
 	
+	virtual bool LineIsValid(const char *pStr) = 0;
 	virtual void ExecuteLine(const char *Sptr) = 0;
 	virtual void ExecuteLineStroked(int Stroke, const char *pStr) = 0;
 	virtual void ExecuteFile(const char *pFilename) = 0;
 	
 	virtual void RegisterPrintCallback(FPrintCallback pfnPrintCallback, void *pUserData) = 0;
-	virtual void Print(const char *pStr) = 0;
+	virtual void Print(int Level, const char *pFrom, const char *pStr) = 0;
 };
 
 extern IConsole *CreateConsole(int FlagMask);

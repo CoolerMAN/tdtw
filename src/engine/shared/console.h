@@ -1,8 +1,10 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SHARED_CONSOLE_H
 #define ENGINE_SHARED_CONSOLE_H
 
 #include <engine/console.h>
+#include "memheap.h"
 
 class CConsole : public IConsole
 {
@@ -26,6 +28,8 @@ class CConsole : public IConsole
 	};	
 	
 	int m_FlagMask;
+	bool m_StoreCommands;
+	const char *m_paStrokeStr[2];
 	CCommand *m_pFirstCommand;
 
 	class CExecFile
@@ -62,6 +66,29 @@ class CConsole : public IConsole
 		
 		const char *m_pCommand;
 		const char *m_apArgs[MAX_PARTS];
+
+		CResult() : IResult()
+		{
+			mem_zero(m_aStringStorage, sizeof(m_aStringStorage));
+			m_pArgsStart = 0;
+			m_pCommand = 0;
+			mem_zero(m_apArgs, sizeof(m_apArgs));
+		}
+
+		CResult &operator =(const CResult &Other)
+		{
+			if(this != &Other)
+			{
+				IResult::operator=(Other);
+				int Offset = m_aStringStorage - Other.m_aStringStorage;
+				mem_copy(m_aStringStorage, Other.m_aStringStorage, sizeof(m_aStringStorage));
+				m_pArgsStart = Other.m_pArgsStart + Offset;
+				m_pCommand = Other.m_pCommand + Offset;
+				for(unsigned i = 0; i < Other.m_NumArgs; ++i)
+					m_apArgs[i] = Other.m_apArgs[i] + Offset;
+			}
+			return *this;
+		}
 		
 		void AddArgument(const char *pArg)
 		{
@@ -76,6 +103,37 @@ class CConsole : public IConsole
 	int ParseStart(CResult *pResult, const char *pString, int Length);
 	int ParseArgs(CResult *pResult, const char *pFormat);
 
+	class CExecutionQueue
+	{
+		CHeap m_Queue;
+
+	public:
+		struct CQueueEntry
+		{
+			CQueueEntry *m_pNext;
+			FCommandCallback m_pfnCommandCallback;
+			void *m_pCommandUserData;
+			CResult m_Result;
+		} *m_pFirst, *m_pLast;
+
+		void AddEntry()
+		{
+			CQueueEntry *pEntry = static_cast<CQueueEntry *>(m_Queue.Allocate(sizeof(CQueueEntry)));
+			pEntry->m_pNext = 0;
+			if(!m_pFirst)
+				m_pFirst = pEntry;
+			if(m_pLast)
+				m_pLast->m_pNext = pEntry;
+			m_pLast = pEntry;
+			(void)new(&(pEntry->m_Result)) CResult;
+		}
+		void Reset()
+		{
+			m_Queue.Reset();
+			m_pFirst = m_pLast = 0;
+		}
+	} m_ExecutionQueue;
+
 	CCommand *FindCommand(const char *pName, int FlagMask);
 
 public:
@@ -87,12 +145,14 @@ public:
 	virtual void ParseArguments(int NumArgs, const char **ppArguments);
 	virtual void Register(const char *pName, const char *pParams, int Flags, FCommandCallback pfnFunc, void *pUser, const char *pHelp);
 	virtual void Chain(const char *pName, FChainCommandCallback pfnChainFunc, void *pUser);
+	virtual void StoreCommands(bool Store);
 	
+	virtual bool LineIsValid(const char *pStr);
 	virtual void ExecuteLine(const char *pStr);
 	virtual void ExecuteFile(const char *pFilename);
 
 	virtual void RegisterPrintCallback(FPrintCallback pfnPrintCallback, void *pUserData);
-	virtual void Print(const char *pStr);
+	virtual void Print(int Level, const char *pFrom, const char *pStr);
 };
 
 #endif

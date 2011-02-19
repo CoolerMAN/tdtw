@@ -1,3 +1,5 @@
+import sys
+
 GlobalIdCounter = 0
 def GetID():
 	global GlobalIdCounter
@@ -289,6 +291,14 @@ class NetString(NetVariable):
 		return ["const char *%s;"%self.name]
 	def emit_unpack(self):
 		return ["pMsg->%s = pUnpacker->GetString();" % self.name]
+	def emit_pack(self):
+		return ["pPacker->AddString(%s, -1);" % self.name]
+
+class NetStringStrict(NetVariable):
+	def emit_declaration(self):
+		return ["const char *%s;"%self.name]
+	def emit_unpack(self):
+		return ["pMsg->%s = pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);" % self.name]
 	def emit_pack(self):
 		return ["pPacker->AddString(%s, -1);" % self.name]
 

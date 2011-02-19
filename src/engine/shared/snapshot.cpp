@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "snapshot.h"
 #include "engine.h"
 #include "compression.h"
@@ -79,7 +80,7 @@ static void GenerateHash(CItemList *pHashlist, CSnapshot *pSnapshot)
 	for(int i = 0; i < pSnapshot->NumItems(); i++)
 	{
 		int Key = pSnapshot->GetItem(i)->Key();
-		int HashID = ((Key>>8)&0xf0) | (Key&0xf);
+		int HashID = ((Key>>12)&0xf0) | (Key&0xf);
 		if(pHashlist[HashID].m_Num != 64)
 		{
 			pHashlist[HashID].m_aIndex[pHashlist[HashID].m_Num] = i;
@@ -91,7 +92,7 @@ static void GenerateHash(CItemList *pHashlist, CSnapshot *pSnapshot)
 
 static int GetItemIndexHashed(int Key, const CItemList *pHashlist)
 {
-		int HashID = ((Key>>8)&0xf0) | (Key&0xf);
+		int HashID = ((Key>>12)&0xf0) | (Key&0xf);
 		for(int i = 0; i < pHashlist[HashID].m_Num; i++)
 		{
 			if(pHashlist[HashID].m_aKeys[i] == Key)
@@ -285,7 +286,7 @@ int CSnapshotDelta::UnpackDelta(CSnapshot *pFrom, CSnapshot *pTo, void *pSrcData
 	CSnapshotItem *pFromItem;
 	int Keep, ItemSize;
 	int *pDeleted;
-	int Id, Type, Key;
+	int ID, Type, Key;
 	int FromIndex;
 	int *pNewData;
 			
@@ -329,7 +330,7 @@ int CSnapshotDelta::UnpackDelta(CSnapshot *pFrom, CSnapshot *pTo, void *pSrcData
 			return -1;
 		
 		Type = *pData++;
-		Id = *pData++;
+		ID = *pData++;
 		if(m_aItemSizes[Type])
 			ItemSize = m_aItemSizes[Type];
 		else
@@ -342,7 +343,7 @@ int CSnapshotDelta::UnpackDelta(CSnapshot *pFrom, CSnapshot *pTo, void *pSrcData
 		
 		if(RangeCheck(pEnd, pData, ItemSize) || ItemSize < 0) return -3;
 		
-		Key = (Type<<16)|Id;
+		Key = (Type<<16)|ID;
 		
 		// create the item if needed
 		pNewData = Builder.GetItemData(Key);
@@ -522,6 +523,14 @@ int CSnapshotBuilder::Finish(void *SpnapData)
 
 void *CSnapshotBuilder::NewItem(int Type, int ID, int Size)
 {
+	if(m_DataSize + sizeof(CSnapshotItem) + Size >= CSnapshot::MAX_SIZE ||
+		m_NumItems+1 >= MAX_ITEMS)
+	{
+		dbg_assert(m_DataSize < CSnapshot::MAX_SIZE, "too much data");
+		dbg_assert(m_NumItems < MAX_ITEMS, "too many items");
+		return 0;
+	}
+
 	CSnapshotItem *pObj = (CSnapshotItem *)(m_aData + m_DataSize);
 
 	mem_zero(pObj, sizeof(CSnapshotItem) + Size);
@@ -529,9 +538,6 @@ void *CSnapshotBuilder::NewItem(int Type, int ID, int Size)
 	m_aOffsets[m_NumItems] = m_DataSize;
 	m_DataSize += sizeof(CSnapshotItem) + Size;
 	m_NumItems++;
-	
-	dbg_assert(m_DataSize < CSnapshot::MAX_SIZE, "too much data");
-	dbg_assert(m_NumItems < MAX_ITEMS, "too many items");
 
 	return pObj->Data();
 }

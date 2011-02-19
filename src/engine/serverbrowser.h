@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SERVERBROWSER_H
 #define ENGINE_SERVERBROWSER_H
 
@@ -79,7 +80,9 @@ public:
 	};
 
 	virtual void Refresh(int Type) = 0;
+	virtual bool IsRefreshing() const = 0;
 	virtual bool IsRefreshingMasters() const = 0;
+	virtual int LoadingProgression() const = 0;
 	
 	virtual int NumServers() const = 0;
 	

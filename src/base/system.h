@@ -1,4 +1,5 @@
-/* copyright (c) 2007 magnus auvinen, see licence.txt for more info */
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 
 /*
 	Title: OS Abstraction
@@ -222,7 +223,7 @@ unsigned io_read(IOHANDLE io, void *buffer, unsigned size);
 	Returns:
 		Number of bytes skipped.
 */
-unsigned io_skip(IOHANDLE io, unsigned size);
+unsigned io_skip(IOHANDLE io, int size);
 
 /*
 	Function: io_write
@@ -732,9 +733,21 @@ void str_format(char *buffer, int buffer_size, const char *format, ...);
 void str_sanitize_strong(char *str);
 
 /*
+	Function: str_sanitize_cc
+		Replaces all characters below 32 with whitespace.
+	
+	Parameters:
+		str - String to sanitize.
+
+	Remarks:
+		- The strings are treated as zero-termineted strings.
+*/
+void str_sanitize_cc(char *str);
+
+/*
 	Function: str_sanitize
-		Replaces all characters below 32 and above 127 with whitespace with
-		exception to \r, \n and \r.
+		Replaces all characters below 32 with whitespace with
+		exception to \t, \n and \r.
 	
 	Parameters:
 		str - String to sanitize.
@@ -743,6 +756,38 @@ void str_sanitize_strong(char *str);
 		- The strings are treated as zero-termineted strings.
 */
 void str_sanitize(char *str);
+
+/*
+	Function: str_skip_to_whitespace
+		Skips leading non-whitespace characters(all but ' ', '\t', '\n', '\r').
+	
+	Parameters:
+		str - Pointer to the string.
+
+	Returns:
+		Pointer to the first whitespace character found
+		within the string.
+
+	Remarks:
+		- The strings are treated as zero-termineted strings.
+*/
+char *str_skip_to_whitespace(char *str);
+
+/*
+	Function: str_skip_whitespaces
+		Skips leading whitespace characters(' ', '\t', '\n', '\r').
+	
+	Parameters:
+		str - Pointer to the string.
+
+	Returns:
+		Pointer to the first non-whitespace character found
+		within the string.
+
+	Remarks:
+		- The strings are treated as zero-termineted strings.
+*/
+char *str_skip_whitespaces(char *str);
 
 /*
 	Function: str_comp_nocase
@@ -765,7 +810,7 @@ int str_comp_nocase(const char *a, const char *b);
 
 
 /*
-	Function: str_comp_nocase
+	Function: str_comp
 		Compares to strings case sensitive.
 	
 	Parameters:
@@ -783,7 +828,7 @@ int str_comp_nocase(const char *a, const char *b);
 int str_comp(const char *a, const char *b);
 
 /*
-	Function: str_comp_nocase
+	Function: str_comp_num
 		Compares up to num characters of two strings case sensitive.
 	
 	Parameters:
@@ -800,6 +845,24 @@ int str_comp(const char *a, const char *b);
 		- The strings are treated as zero-termineted strings.
 */
 int str_comp_num(const char *a, const char *b, const int num);
+
+/*
+	Function: str_comp_filenames
+		Compares two strings case sensitive, digit chars will be compared as numbers.
+	
+	Parameters:
+		a - String to compare.
+		b - String to compare.
+	
+	Returns:	
+		<0 - String a is lesser then string b
+		0 - String a is equal to string b
+		>0 - String a is greater then string b
+
+	Remarks:
+		- The strings are treated as zero-termineted strings.
+*/
+int str_comp_filenames(const char *a, const char *b);
 
 /*
 	Function: str_find_nocase
@@ -851,6 +914,19 @@ const char *str_find(const char *haystack, const char *needle);
 */
 void str_hex(char *dst, int dst_size, const void *data, int data_size);
 
+/*
+	Function: str_timestamp
+		Copies a time stamp in the format year-month-day_hour-minute-second to the string.
+
+	Parameters:
+		buffer - Pointer to a buffer that shall receive the time stamp string.
+		buffer_size - Size of the buffer.
+
+	Remarks:
+		- Guarantees that buffer string will contain zero-termination.
+*/
+void str_timestamp(char *buffer, int buffer_size);
+
 /* Group: Filesystem */
 
 /*
@@ -860,13 +936,14 @@ void str_hex(char *dst, int dst_size, const void *data, int data_size);
 	Parameters:
 		dir - Directory to list
 		cb - Callback function to call for each entry
+		type - Type of the directory
 		user - Pointer to give to the callback
 	
 	Returns:
 		Always returns 0.
 */
-typedef void (*FS_LISTDIR_CALLBACK)(const char *name, int is_dir, void *user);
-int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, void *user);
+typedef void (*FS_LISTDIR_CALLBACK)(const char *name, int is_dir, int dir_type, void *user);
+int fs_listdir(const char *dir, FS_LISTDIR_CALLBACK cb, int type, void *user);
 
 /*
 	Function: fs_makedir
@@ -915,6 +992,61 @@ int fs_is_dir(const char *path);
 		Returns 0 on success, 1 on failure.
 */
 int fs_chdir(const char *path);
+
+/*
+	Function: fs_getcwd
+		Gets the current working directory.
+	
+	Returns:
+		Returns a pointer to the buffer on success, 0 on failure.
+*/
+char *fs_getcwd(char *buffer, int buffer_size);
+
+/*
+	Function: fs_parent_dir
+		Get the parent directory of a directory
+	
+	Parameters:
+		path - The directory string
+
+	Returns:
+		Returns 0 on success, 1 on failure.
+
+	Remarks:
+		- The string is treated as zero-termineted string.
+*/
+int fs_parent_dir(char *path);
+
+/*
+	Function: fs_remove
+		Deletes the file with the specified name.
+	
+	Parameters:
+		filename - The file to delete
+
+	Returns:
+		Returns 0 on success, 1 on failure.
+
+	Remarks:
+		- The strings are treated as zero-terminated strings.
+*/
+int fs_remove(const char *filename);
+
+/*
+	Function: fs_rename
+		Renames the file or directory. If the paths differ the file will be moved.
+	
+	Parameters:
+		oldname - The actual name
+		newname - The new name
+
+	Returns:
+		Returns 0 on success, 1 on failure.
+
+	Remarks:
+		- The strings are treated as zero-terminated strings.
+*/
+int fs_rename(const char *oldname, const char *newname);
 
 /*
 	Group: Undocumented
@@ -1087,6 +1219,22 @@ int str_utf8_decode(const char **ptr);
 		- Does not do zero termination of the string.
 */
 int str_utf8_encode(char *ptr, int chr);
+
+/*
+	Function: str_utf8_check
+		Checks if a strings contains just valid utf8 characters.
+	
+	Parameters:
+		str - Pointer to a possible utf8 string.
+		
+	Returns:
+		0 - invalid characters found.
+		1 - only valid characters found.
+
+	Remarks:
+		- The string is treated as zero-terminated utf8 string.
+*/
+int str_utf8_check(const char *str);
 
 #ifdef __cplusplus
 }

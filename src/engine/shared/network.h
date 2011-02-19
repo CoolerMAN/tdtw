@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SHARED_NETWORK_H
 #define ENGINE_SHARED_NETWORK_H
 
@@ -80,7 +81,7 @@ enum
 };
 
 
-typedef int (*NETFUNC_DELCLIENT)(int ClientID, void *pUser);
+typedef int (*NETFUNC_DELCLIENT)(int ClientID, const char* pReason, void *pUser);
 typedef int (*NETFUNC_NEWCLIENT)(int ClientID, void *pUser);
 
 struct CNetChunk
@@ -218,6 +219,7 @@ public:
 	{
 		NETADDR m_Addr;
 		int m_Expires;
+		char m_Reason[128];
 	};
 	
 private:
@@ -273,10 +275,10 @@ public:
 	int Update();
 	
 	//
-	int Drop(int ClientID, const char *Reason);
+	int Drop(int ClientID, const char *pReason);
 
 	// banning
-	int BanAdd(NETADDR Addr, int Seconds);
+	int BanAdd(NETADDR Addr, int Seconds, const char *pReason);
 	int BanRemove(NETADDR Addr);
 	int BanNum(); // caution, slow
 	int BanGet(int Index, CBanInfo *pInfo); // caution, slow

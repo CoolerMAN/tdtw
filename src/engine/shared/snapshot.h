@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SHARED_SNAPSHOT_H
 #define ENGINE_SHARED_SNAPSHOT_H
 
@@ -113,7 +114,7 @@ class CSnapshotBuilder
 {
 	enum
 	{
-		MAX_ITEMS = 1024*2
+		MAX_ITEMS = 1024
 	};
 
 	char m_aData[CSnapshot::MAX_SIZE];

@@ -1,11 +1,11 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_GAMECLIENT_H
 #define GAME_CLIENT_GAMECLIENT_H
 
 #include <base/vmath.h>
 #include <engine/client.h>
 #include <engine/console.h>
-#include <engine/demo.h>
 #include <game/layers.h>
 #include <game/gamecore.h>
 #include "render.h"
@@ -78,6 +78,8 @@ public:
 	class CLayers *Layers() { return &m_Layers; };
 	class CCollision *Collision() { return &m_Collision; };
 	
+	int NetobjNumCorrections() { return m_NetObjHandler.NumObjCorrections(); }
+	const char *NetobjCorrectedOn() { return m_NetObjHandler.CorrectedObjOn(); }
 
 	bool m_SuppressEvents;
 	bool m_NewTick;
@@ -112,7 +114,7 @@ public:
 		const CNetObj_PlayerInfo *m_paPlayerInfos[MAX_CLIENTS];
 		const CNetObj_PlayerInfo *m_paInfoByScore[MAX_CLIENTS];
 		
-		int m_LocalCid;
+		int m_LocalClientID;
 		int m_NumPlayers;
 		int m_aTeamSize[2];
 		bool m_Spectate;
@@ -150,7 +152,7 @@ public:
 		
 		char m_aName[64];
 		char m_aSkinName[64];
-		int m_SkinId;
+		int m_SkinID;
 		int m_SkinColor;
 		int m_Team;
 		int m_Emoticon;
@@ -176,16 +178,20 @@ public:
 	// hooks
 	virtual void OnConnected();
 	virtual void OnRender();
+	virtual void OnRelease();
 	virtual void OnInit();
 	virtual void OnConsoleInit();
 	virtual void OnStateChange(int NewState, int OldState);
 	virtual void OnMessage(int MsgId, CUnpacker *pUnpacker);
 	virtual void OnNewSnapshot();
 	virtual void OnPredict();
+	virtual void OnActivateEditor();
 	virtual int OnSnapInput(int *pData);
 	virtual void OnShutdown();
 	virtual void OnEnterGame();
 	virtual void OnRconLine(const char *pLine);
+	virtual void OnGameOver();
+	virtual void OnStartGame();
 	
 	virtual const char *GetItemName(int Type);
 	virtual const char *Version();
@@ -196,7 +202,7 @@ public:
 	// TODO: move these
 	void SendSwitchTeam(int Team);
 	void SendInfo(bool Start);
-	void SendKill(int ClientId);
+	void SendKill(int ClientID);
 	
 	// pointers to all systems
 	class CGameConsole *m_pGameConsole;
@@ -214,7 +220,33 @@ public:
 	class CMotd *m_pMotd;
 	class CMapImages *m_pMapimages;
 	class CVoting *m_pVoting;
+	class CScoreboard *m_pScoreboard;
 };
+
+
+inline float HueToRgb(float v1, float v2, float h)
+{
+   if(h < 0.0f) h += 1;
+   if(h > 1.0f) h -= 1;
+   if((6.0f * h) < 1.0f) return v1 + (v2 - v1) * 6.0f * h;
+   if((2.0f * h) < 1.0f) return v2;
+   if((3.0f * h) < 2.0f) return v1 + (v2 - v1) * ((2.0f/3.0f) - h) * 6.0f;
+   return v1;
+}
+
+inline vec3 HslToRgb(vec3 HSL)
+{
+	if(HSL.s == 0.0f)
+		return vec3(HSL.l, HSL.l, HSL.l);
+	else
+	{
+		float v2 = HSL.l < 0.5f ? HSL.l * (1.0f + HSL.s) : (HSL.l+HSL.s) - (HSL.s*HSL.l);
+		float v1 = 2.0f * HSL.l - v2;
+
+		return vec3(HueToRgb(v1, v2, HSL.h + (1.0f/3.0f)), HueToRgb(v1, v2, HSL.h), HueToRgb(v1, v2, HSL.h - (1.0f/3.0f)));
+	}
+}
+
 
 extern const char *Localize(const char *Str);
 

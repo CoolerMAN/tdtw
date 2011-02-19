@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 
 #include <base/detect.h>
 
@@ -25,9 +26,9 @@
 #include <engine/graphics.h>
 #include <engine/storage.h>
 #include <engine/keys.h>
+#include <engine/console.h>
 
 #include <math.h>
-#include <time.h>
 
 #include "graphics.h"
 
@@ -103,7 +104,7 @@ void CGraphics_OpenGL::AddVertices(int Count)
 		Flush();
 }
 
-void CGraphics_OpenGL::Rotate4(CPoint *pCenter, CVertex *pPoints)
+void CGraphics_OpenGL::Rotate4(const CPoint &rCenter, CVertex *pPoints)
 {
 	float c = cosf(m_Rotation);
 	float s = sinf(m_Rotation);
@@ -112,10 +113,10 @@ void CGraphics_OpenGL::Rotate4(CPoint *pCenter, CVertex *pPoints)
 
 	for(i = 0; i < 4; i++)
 	{
-		x = pPoints[i].m_Pos.x - pCenter->x;
-		y = pPoints[i].m_Pos.y - pCenter->y;
-		pPoints[i].m_Pos.x = x * c - y * s + pCenter->x;
-		pPoints[i].m_Pos.y = x * s + y * c + pCenter->y;
+		x = pPoints[i].m_Pos.x - rCenter.x;
+		y = pPoints[i].m_Pos.y - rCenter.y;
+		pPoints[i].m_Pos.x = x * c - y * s + rCenter.x;
+		pPoints[i].m_Pos.y = x * s + y * c + rCenter.y;
 	}
 }
 
@@ -353,28 +354,28 @@ int CGraphics_OpenGL::LoadTextureRaw(int Width, int Height, int Format, const vo
 }
 
 // simple uncompressed RGBA loaders
-int CGraphics_OpenGL::LoadTexture(const char *pFilename, int StoreFormat, int Flags)
+int CGraphics_OpenGL::LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags)
 {
 	int l = str_length(pFilename);
-	int Id;
+	int ID;
 	CImageInfo Img;
 	
 	if(l < 3)
 		return -1;
-	if(LoadPNG(&Img, pFilename))
+	if(LoadPNG(&Img, pFilename, StorageType))
 	{
 		if (StoreFormat == CImageInfo::FORMAT_AUTO)
 			StoreFormat = Img.m_Format;
 
-		Id = LoadTextureRaw(Img.m_Width, Img.m_Height, Img.m_Format, Img.m_pData, StoreFormat, Flags);
+		ID = LoadTextureRaw(Img.m_Width, Img.m_Height, Img.m_Format, Img.m_pData, StoreFormat, Flags);
 		mem_free(Img.m_pData);
-		return Id;
+		return ID;
 	}
 	
 	return m_InvalidTexture;
 }
 
-int CGraphics_OpenGL::LoadPNG(CImageInfo *pImg, const char *pFilename)
+int CGraphics_OpenGL::LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType)
 {
 	char aCompleteFilename[512];
 	unsigned char *pBuffer;
@@ -383,13 +384,21 @@ int CGraphics_OpenGL::LoadPNG(CImageInfo *pImg, const char *pFilename)
 	// open file for reading
 	png_init(0,0); // ignore_convention
 
-	IOHANDLE File = m_pStorage->OpenFile(pFilename, IOFLAG_READ, aCompleteFilename, sizeof(aCompleteFilename));
+	IOHANDLE File = m_pStorage->OpenFile(pFilename, IOFLAG_READ, StorageType, aCompleteFilename, sizeof(aCompleteFilename));
 	if(File)
 		io_close(File);
+	else
+	{
+		dbg_msg("game/png", "failed to open file. filename='%s'", pFilename);
+		return 0;
+	}
 	
-	if(png_open_file(&Png, aCompleteFilename) != PNG_NO_ERROR) // ignore_convention
+	int Error = png_open_file(&Png, aCompleteFilename); // ignore_convention
+	if(Error != PNG_NO_ERROR)
 	{
 		dbg_msg("game/png", "failed to open file. filename='%s'", aCompleteFilename);
+		if(Error != PNG_FILE_ERROR)
+			png_close_file(&Png); // ignore_convention
 		return 0;
 	}
 	
@@ -441,12 +450,14 @@ void CGraphics_OpenGL::ScreenshotDirect(const char *pFilename)
 		char aWholePath[1024];
 		png_t Png; // ignore_convention
 
-		IOHANDLE File  = m_pStorage->OpenFile(pFilename, IOFLAG_WRITE, aWholePath, sizeof(aWholePath));
+		IOHANDLE File  = m_pStorage->OpenFile(pFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE, aWholePath, sizeof(aWholePath));
 		if(File)
 			io_close(File);
 	
 		// save png
-		dbg_msg("client", "saved screenshot to '%s'", aWholePath);
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "saved screenshot to '%s'", aWholePath);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
 		png_open_file_write(&Png, aWholePath); // ignore_convention
 		png_set_data(&Png, w, h, 8, PNG_TRUECOLOR, (unsigned char *)pPixelData); // ignore_convention
 		png_close_file(&Png); // ignore_convention
@@ -558,15 +569,12 @@ void CGraphics_OpenGL::QuadsDraw(CQuadItem *pArray, int Num)
 void CGraphics_OpenGL::QuadsDrawTL(const CQuadItem *pArray, int Num)
 {
 	CPoint Center;
+	Center.z = 0;
 
 	dbg_assert(m_Drawing == DRAWING_QUADS, "called quads_draw without begin");
 
 	for(int i = 0; i < Num; ++i)
 	{
-		Center.x = pArray[i].m_X + pArray[i].m_Width/2;
-		Center.y = pArray[i].m_Y + pArray[i].m_Height/2;
-		Center.z = 0;
-		
 		m_aVertices[m_NumVertices + 4*i].m_Pos.x = pArray[i].m_X;
 		m_aVertices[m_NumVertices + 4*i].m_Pos.y = pArray[i].m_Y;
 		m_aVertices[m_NumVertices + 4*i].m_Tex = m_aTexture[0];
@@ -588,7 +596,12 @@ void CGraphics_OpenGL::QuadsDrawTL(const CQuadItem *pArray, int Num)
 		m_aVertices[m_NumVertices + 4*i + 3].m_Color = m_aColor[3];
 
 		if(m_Rotation != 0)
-			Rotate4(&Center, &m_aVertices[m_NumVertices + 4*i]);
+		{
+			Center.x = pArray[i].m_X + pArray[i].m_Width/2;
+			Center.y = pArray[i].m_Y + pArray[i].m_Height/2;
+
+			Rotate4(Center, &m_aVertices[m_NumVertices + 4*i]);
+		}
 	}
 
 	AddVertices(4*Num);
@@ -661,6 +674,7 @@ void CGraphics_OpenGL::QuadsText(float x, float y, float Size, float r, float g,
 bool CGraphics_OpenGL::Init()
 {
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
+	m_pConsole = Kernel()->RequestInterface<IConsole>();
 	
 	// Set all z to -5.0f
 	for(int i = 0; i < MAX_VERTICES; i++)
@@ -692,7 +706,6 @@ bool CGraphics_OpenGL::Init()
 	};
 	
 	m_InvalidTexture = LoadTextureRaw(4,4,CImageInfo::FORMAT_RGBA,aNullTextureData,CImageInfo::FORMAT_RGBA,TEXLOAD_NORESAMPLE);
-	dbg_msg("", "invalid texture id: %d %d", m_InvalidTexture, m_aTextures[m_InvalidTexture].m_Tex);
 	
 	return true;
 }
@@ -861,8 +874,11 @@ int CGraphics_SDL::WindowOpen()
 
 }
 
-void CGraphics_SDL::TakeScreenshot()
+void CGraphics_SDL::TakeScreenshot(const char *pFilename)
 {
+	char aDate[20];
+	str_timestamp(aDate, sizeof(aDate));
+	str_format(m_aScreenshotName, sizeof(m_aScreenshotName), "screenshots/%s_%s.png", pFilename?pFilename:"screenshot", aDate);
 	m_DoScreenshot = true;
 }
 
@@ -870,29 +886,7 @@ void CGraphics_SDL::Swap()
 {
 	if(m_DoScreenshot)
 	{
-		// find filename
-		char aFilename[128];
-		static int Index = 1;
-
-		time_t Time;
-		char aDate[20];
-
-		time(&Time);
-		tm* TimeInfo = localtime(&Time);
-		strftime(aDate, sizeof(aDate), "%Y-%m-%d_%I-%M", TimeInfo);
-
-		for(; Index < 10000; Index++)
-		{
-			IOHANDLE io;
-			str_format(aFilename, sizeof(aFilename), "screenshots/screenshot%s-%05d.png", aDate, Index);
-			io = m_pStorage->OpenFile(aFilename, IOFLAG_READ);
-			if(io)
-				io_close(io);
-			else
-				break;
-		}
-
-		ScreenshotDirect(aFilename);
+		ScreenshotDirect(m_aScreenshotName);
 		m_DoScreenshot = false;
 	}
 	

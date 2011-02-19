@@ -1,4 +1,5 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_MAPITEMS_H
 #define GAME_MAPITEMS_H
 
@@ -49,6 +50,7 @@ enum
 	TILEFLAG_VFLIP=1,
 	TILEFLAG_HFLIP=2,
 	TILEFLAG_OPAQUE=4,
+	TILEFLAG_ROTATE=8,
 	
 	LAYERFLAG_DETAIL=1,
 	
@@ -175,7 +177,7 @@ struct CMapItemEnvelope
 	int m_Channels;
 	int m_StartPoint;
 	int m_NumPoints;
-	int m_Name;
+	int m_aName[8];
 } ;
 
 #endif

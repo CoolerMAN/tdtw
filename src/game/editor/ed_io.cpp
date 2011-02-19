@@ -1,6 +1,11 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include <engine/client.h>
+#include <engine/console.h>
 #include <engine/graphics.h>
+#include <engine/serverbrowser.h>
 #include <engine/storage.h>
+#include <game/gamecore.h>
 #include "ed_editor.h"
 
 template<typename T>
@@ -197,11 +202,14 @@ int CEditor::Save(const char *pFilename)
 
 int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 {
-	dbg_msg("editor", "saving to '%s'...", pFileName);
+	char aBuf[256];
+	str_format(aBuf, sizeof(aBuf), "saving to '%s'...", pFileName);
+	m_pEditor->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "editor", aBuf);
 	CDataFileWriter df;
 	if(!df.Open(pStorage, pFileName))
 	{
-		dbg_msg("editor", "failed to open file '%s'...", pFileName);
+		str_format(aBuf, sizeof(aBuf), "failed to open file '%s'...", pFileName);
+		m_pEditor->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "editor", aBuf);
 		return 0;
 	}
 		
@@ -236,10 +244,13 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 	}
 	
 	// save layers
-	int LayerCount = 0;
+	int LayerCount = 0, GroupCount = 0;
 	for(int g = 0; g < m_lGroups.size(); g++)
 	{
 		CLayerGroup *pGroup = m_lGroups[g];
+		if(!pGroup->m_SaveToMap)
+			continue;
+
 		CMapItemGroup GItem;
 		GItem.m_Version = CMapItemGroup::CURRENT_VERSION;
 		
@@ -257,9 +268,12 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 		
 		for(int l = 0; l < pGroup->m_lLayers.size(); l++)
 		{
+			if(!pGroup->m_lLayers[l]->m_SaveToMap)
+				continue;
+
 			if(pGroup->m_lLayers[l]->m_Type == LAYERTYPE_TILES)
 			{
-				dbg_msg("editor", "saving tiles layer");
+				m_pEditor->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "editor", "saving tiles layer");
 				CLayerTiles *pLayer = (CLayerTiles *)pGroup->m_lLayers[l];
 				pLayer->PrepareForSave();
 				
@@ -269,11 +283,11 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 				Item.m_Layer.m_Flags = pLayer->m_Flags;
 				Item.m_Layer.m_Type = pLayer->m_Type;
 				
-				Item.m_Color.r = 255; // not in use right now
-				Item.m_Color.g = 255;
-				Item.m_Color.b = 255;
-				Item.m_Color.a = 255;
-				Item.m_ColorEnv = -1;
+				Item.m_Color.r = pLayer->m_Color.r;
+				Item.m_Color.g = pLayer->m_Color.g;
+				Item.m_Color.b = pLayer->m_Color.b;
+				Item.m_Color.a = pLayer->m_Color.a;
+				Item.m_ColorEnv = -1; // not in use right now
 				Item.m_ColorEnvOffset = 0;
 				
 				Item.m_Width = pLayer->m_Width;
@@ -288,7 +302,7 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 			}
 			else if(pGroup->m_lLayers[l]->m_Type == LAYERTYPE_QUADS)
 			{
-				dbg_msg("editor", "saving quads layer");
+				m_pEditor->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "editor", "saving quads layer");
 				CLayerQuads *pLayer = (CLayerQuads *)pGroup->m_lLayers[l];
 				if(pLayer->m_lQuads.size())
 				{
@@ -312,7 +326,7 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 			}
 		}
 		
-		df.AddItem(MAPITEMTYPE_GROUP, g, sizeof(GItem), &GItem);
+		df.AddItem(MAPITEMTYPE_GROUP, GroupCount++, sizeof(GItem), &GItem);
 	}
 	
 	// save envelopes
@@ -324,7 +338,7 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 		Item.m_Channels = m_lEnvelopes[e]->m_Channels;
 		Item.m_StartPoint = PointCount;
 		Item.m_NumPoints = m_lEnvelopes[e]->m_lPoints.size();
-		Item.m_Name = -1;
+		StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), m_lEnvelopes[e]->m_aName);
 		
 		df.AddItem(MAPITEMTYPE_ENVELOPE, e, sizeof(Item), &Item);
 		PointCount += Item.m_NumPoints;
@@ -346,29 +360,33 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 	
 	// finish the data file
 	df.Finish();
-	dbg_msg("editor", "done");
+	m_pEditor->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "editor", "saving done");
 	
 	// send rcon.. if we can
-	/*
-	if(Client()->RconAuthed())
+	if(m_pEditor->Client()->RconAuthed())
 	{
-		Client()->Rcon("sv_map_reload 1");
-	}*/
+		CServerInfo CurrentServerInfo;
+		m_pEditor->Client()->GetServerInfo(&CurrentServerInfo);
+		char aMapName[128];
+		m_pEditor->ExtractName(pFileName, aMapName, sizeof(aMapName));
+		if(!str_comp(aMapName, CurrentServerInfo.m_aMap))
+			m_pEditor->Client()->Rcon("reload");
+	}
 	
 	return 1;
 }
 
-int CEditor::Load(const char *pFileName)
+int CEditor::Load(const char *pFileName, int StorageType)
 {
 	Reset();
-	return m_Map.Load(Kernel()->RequestInterface<IStorage>(), pFileName);
+	return m_Map.Load(Kernel()->RequestInterface<IStorage>(), pFileName, StorageType);
 }
 
-int CEditorMap::Load(class IStorage *pStorage, const char *pFileName)
+int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int StorageType)
 {
 	CDataFileReader DataFile;
 	//DATAFILE *df = datafile_load(filename);
-	if(!DataFile.Open(pStorage, pFileName))
+	if(!DataFile.Open(pStorage, pFileName, StorageType))
 		return 0;
 		
 	Clean();
@@ -407,10 +425,10 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName)
 					
 					// load external
 					CEditorImage ImgInfo(m_pEditor);
-					if(m_pEditor->Graphics()->LoadPNG(&ImgInfo, aBuf))
+					if(m_pEditor->Graphics()->LoadPNG(&ImgInfo, aBuf, IStorage::TYPE_ALL))
 					{
 						*pImg = ImgInfo;
-						pImg->m_TexId = m_pEditor->Graphics()->LoadTextureRaw(ImgInfo.m_Width, ImgInfo.m_Height, ImgInfo.m_Format, ImgInfo.m_pData, CImageInfo::FORMAT_AUTO, 0);
+						pImg->m_TexID = m_pEditor->Graphics()->LoadTextureRaw(ImgInfo.m_Width, ImgInfo.m_Height, ImgInfo.m_Format, ImgInfo.m_pData, CImageInfo::FORMAT_AUTO, 0);
 						pImg->m_External = 1;
 					}
 				}
@@ -424,7 +442,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName)
 					void *pData = DataFile.GetData(pItem->m_ImageData);
 					pImg->m_pData = mem_alloc(pImg->m_Width*pImg->m_Height*4, 1);
 					mem_copy(pImg->m_pData, pData, pImg->m_Width*pImg->m_Height*4);
-					pImg->m_TexId = m_pEditor->Graphics()->LoadTextureRaw(pImg->m_Width, pImg->m_Height, pImg->m_Format, pImg->m_pData, CImageInfo::FORMAT_AUTO, 0);
+					pImg->m_TexID = m_pEditor->Graphics()->LoadTextureRaw(pImg->m_Width, pImg->m_Height, pImg->m_Format, pImg->m_pData, CImageInfo::FORMAT_AUTO, 0);
 				}
 
 				// copy image name
@@ -490,6 +508,10 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName)
 						{
 							pTiles = new CLayerTiles(pTilemapItem->m_Width, pTilemapItem->m_Height);
 							pTiles->m_pEditor = m_pEditor;
+							pTiles->m_Color.r = pTilemapItem->m_Color.r;
+							pTiles->m_Color.g = pTilemapItem->m_Color.g;
+							pTiles->m_Color.b = pTilemapItem->m_Color.b;
+							pTiles->m_Color.a = pTilemapItem->m_Color.a;
 						}
 
 						pLayer = pTiles;
@@ -553,6 +575,8 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName)
 				CEnvelope *pEnv = new CEnvelope(pItem->m_Channels);
 				pEnv->m_lPoints.set_size(pItem->m_NumPoints);
 				mem_copy(pEnv->m_lPoints.base_ptr(), &pPoints[pItem->m_StartPoint], sizeof(CEnvPoint)*pItem->m_NumPoints);
+				if(pItem->m_aName[0] != -1)	// compatibility with old maps
+					IntsToStr(pItem->m_aName, sizeof(pItem->m_aName)/sizeof(int), pEnv->m_aName);
 				m_lEnvelopes.add(pEnv);
 			}
 		}
@@ -568,13 +592,13 @@ static void ModifyAdd(int *pIndex)
 		*pIndex += gs_ModifyAddAmount;
 }
 
-int CEditor::Append(const char *pFileName)
+int CEditor::Append(const char *pFileName, int StorageType)
 {
 	CEditorMap NewMap;
 	NewMap.m_pEditor = this;
 
 	int Err;
-	Err = NewMap.Load(Kernel()->RequestInterface<IStorage>(), pFileName);
+	Err = NewMap.Load(Kernel()->RequestInterface<IStorage>(), pFileName, StorageType);
 	if(!Err)
 		return Err;
 

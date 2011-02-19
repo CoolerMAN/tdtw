@@ -1,8 +1,8 @@
-// copyright (c) 2007 magnus auvinen, see licence.txt for more info
-#include <time.h>
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/math.h>
 
-
+#include <engine/demo.h>
 #include <engine/serverbrowser.h>
 #include <engine/textrender.h>
 #include <engine/shared/config.h>
@@ -32,47 +32,45 @@ void CMenus::RenderGame(CUIRect MainView)
 	
 	MainView.VSplitRight(120.0f, &MainView, &Button);
 	static int s_DisconnectButton = 0;
-	static int s_DemoButton = 0;
-	
 	if(DoButton_Menu(&s_DisconnectButton, Localize("Disconnect"), 0, &Button))
 		Client()->Disconnect();
 
 	if(m_pClient->m_Snap.m_pLocalInfo && m_pClient->m_Snap.m_pGameobj)
 	{
-		if(m_pClient->m_Snap.m_pLocalInfo->m_Team != -1)
+		if(m_pClient->m_Snap.m_pLocalInfo->m_Team != TEAM_SPECTATORS)
 		{
 			MainView.VSplitLeft(10.0f, &Button, &MainView);
 			MainView.VSplitLeft(120.0f, &Button, &MainView);
 			static int s_SpectateButton = 0;
 			if(DoButton_Menu(&s_SpectateButton, Localize("Spectate"), 0, &Button))
 			{
-				m_pClient->SendSwitchTeam(-1);
+				m_pClient->SendSwitchTeam(TEAM_SPECTATORS);
 				SetActive(false);
 			}
 		}
 		
 		if(m_pClient->m_Snap.m_pGameobj->m_Flags & GAMEFLAG_TEAMS)
 		{
-			if(m_pClient->m_Snap.m_pLocalInfo->m_Team != 0)
+			if(m_pClient->m_Snap.m_pLocalInfo->m_Team != TEAM_RED)
 			{
 				MainView.VSplitLeft(10.0f, &Button, &MainView);
 				MainView.VSplitLeft(120.0f, &Button, &MainView);
 				static int s_SpectateButton = 0;
 				if(DoButton_Menu(&s_SpectateButton, Localize("Join red"), 0, &Button))
 				{
-					m_pClient->SendSwitchTeam(0);
+					m_pClient->SendSwitchTeam(TEAM_RED);
 					SetActive(false);
 				}
 			}
 
-			if(m_pClient->m_Snap.m_pLocalInfo->m_Team != 1)
+			if(m_pClient->m_Snap.m_pLocalInfo->m_Team != TEAM_BLUE)
 			{
 				MainView.VSplitLeft(10.0f, &Button, &MainView);
 				MainView.VSplitLeft(120.0f, &Button, &MainView);
 				static int s_SpectateButton = 0;
 				if(DoButton_Menu(&s_SpectateButton, Localize("Join blue"), 0, &Button))
 				{
-					m_pClient->SendSwitchTeam(1);
+					m_pClient->SendSwitchTeam(TEAM_BLUE);
 					SetActive(false);
 				}
 			}
@@ -91,33 +89,19 @@ void CMenus::RenderGame(CUIRect MainView)
 				}
 			}
 		}
-		
-		if(!DemoRecorder()->IsRecording())
-		{
-			MainView.VSplitLeft(100.0f, &Button, &MainView);
-			MainView.VSplitLeft(150.0f, &Button, &MainView);
-			if(DoButton_Menu(&s_DemoButton, Localize("Record demo"), 0, &Button))
-				{
-					// find filename
-					char aFilename[128];
+	}
 
-					time_t Time;
-					
-					time(&Time);
-					tm* TimeInfo = localtime(&Time);
-					strftime(aFilename, sizeof(aFilename), "auto-%Y-%m-%d_%H-%M-%S", TimeInfo);
-					Client()->DemoRecorder_Start(aFilename);
-				}
-		}
+	MainView.VSplitLeft(100.0f, &Button, &MainView);
+	MainView.VSplitLeft(150.0f, &Button, &MainView);
+
+	static int s_DemoButton = 0;
+	bool Recording = DemoRecorder()->IsRecording();
+	if(DoButton_Menu(&s_DemoButton, Localize(Recording ? "Stop record" : "Record demo"), 0, &Button))	// Localize("Stop record");Localize("Record demo");
+	{
+		if(!Recording)
+			Client()->DemoRecorder_Start("demo", true);
 		else
-		{
-			MainView.VSplitLeft(100.0f, &Button, &MainView);
-			MainView.VSplitLeft(150.0f, &Button, &MainView);
-			if(DoButton_Menu(&s_DemoButton, Localize("Stop demo"), 0, &Button))
-				{
-					DemoRecorder()->Stop();
-				}
-		}
+			Client()->DemoRecorder_Stop();
 	}
 	
 	/*
@@ -208,8 +192,8 @@ void CMenus::RenderServerInfo(CUIRect MainView)
 	MainView.Margin(10.0f, &View);
 	
 	// serverinfo
-	View.HSplitTop(View.h/2-5.0f, &ServerInfo, &Motd);
-	ServerInfo.VSplitLeft(View.w/2-5.0f, &ServerInfo, &GameInfo);
+	View.HSplitTop(View.h/2/UI()->Scale()-5.0f, &ServerInfo, &Motd);
+	ServerInfo.VSplitLeft(View.w/2/UI()->Scale()-5.0f, &ServerInfo, &GameInfo);
 	RenderTools()->DrawUIRect(&ServerInfo, vec4(1,1,1,0.25f), CUI::CORNER_ALL, 10.0f);
 	
 	ServerInfo.Margin(5.0f, &ServerInfo);
@@ -315,7 +299,7 @@ void CMenus::RenderServerControlServer(CUIRect MainView)
 		CListboxItem Item = UiDoListboxNextItem(pOption);
 		
 		if(Item.m_Visible)
-			UI()->DoLabel(&Item.m_Rect, FormatCommand(pOption->m_aCommand), 16.0f, -1);
+			UI()->DoLabelScaled(&Item.m_Rect, FormatCommand(pOption->m_aCommand), 16.0f, -1);
 	}
 	
 	m_CallvoteSelectedOption = UiDoListboxEnd(&s_ScrollValue, 0);
@@ -351,7 +335,7 @@ void CMenus::RenderServerControlKick(CUIRect MainView)
 			Item.m_Rect.HSplitTop(5.0f, 0, &Item.m_Rect); // some margin from the top
 			RenderTools()->RenderTee(CAnimState::GetIdle(), &Info, EMOTE_NORMAL, vec2(1,0), vec2(Item.m_Rect.x+Item.m_Rect.h/2, Item.m_Rect.y+Item.m_Rect.h/2));
 			Item.m_Rect.x +=Info.m_Size;
-			UI()->DoLabel(&Item.m_Rect, m_pClient->m_aClients[aPlayerIDs[i]].m_aName, 16.0f, -1);
+			UI()->DoLabelScaled(&Item.m_Rect, m_pClient->m_aClients[aPlayerIDs[i]].m_aName, 16.0f, -1);
 		}
 	}
 	
@@ -383,7 +367,7 @@ void CMenus::RenderServerControl(CUIRect MainView)
 	{
 		TabBar.HSplitTop(10, &Button, &TabBar);
 		TabBar.HSplitTop(26, &Button, &TabBar);
-		if(DoButton_SettingsTab(paTabs[i], paTabs[i], s_ControlPage == i, &Button))
+		if(DoButton_MenuTab(paTabs[i], paTabs[i], s_ControlPage == i, &Button, CUI::CORNER_R))
 		{
 			s_ControlPage = i;
 			m_CallvoteSelectedPlayer = -1;
@@ -423,12 +407,28 @@ void CMenus::RenderServerControl(CUIRect MainView)
 				if(m_CallvoteSelectedPlayer >= 0 && m_CallvoteSelectedPlayer < MAX_CLIENTS &&
 					m_pClient->m_Snap.m_paPlayerInfos[m_CallvoteSelectedPlayer])
 				{
-					m_pClient->m_pVoting->CallvoteKick(m_CallvoteSelectedPlayer);
+					m_pClient->m_pVoting->CallvoteKick(m_CallvoteSelectedPlayer, m_aCallvoteReason);
+					m_aCallvoteReason[0] = 0;
 					SetActive(false);
 				}
 			}
 		}
-
+		
+		// render kick reason
+		if(s_ControlPage == 1)
+		{
+			CUIRect Reason;
+			Bottom.VSplitRight(40.0f, &Bottom, 0);
+			Bottom.VSplitRight(160.0f, &Bottom, &Reason);
+			Reason.HSplitTop(5.0f, 0, &Reason);
+			const char *pLabel = Localize("Reason:");
+			UI()->DoLabelScaled(&Reason, pLabel, 14.0f, -1);
+			float w = TextRender()->TextWidth(0, 14.0f, pLabel, -1);
+			Reason.VSplitLeft(w+10.0f, 0, &Reason);
+			static float s_Offset = 0.0f;
+			DoEditBox(&m_aCallvoteReason, &Reason, m_aCallvoteReason, sizeof(m_aCallvoteReason), 14.0f, &s_Offset, false, CUI::CORNER_ALL);
+		}
+		
 		// force vote button (only available when authed in rcon)
 		if(Client()->RconAuthed())
 		{
@@ -446,7 +446,8 @@ void CMenus::RenderServerControl(CUIRect MainView)
 					if(m_CallvoteSelectedPlayer >= 0 && m_CallvoteSelectedPlayer < MAX_CLIENTS &&
 						m_pClient->m_Snap.m_paPlayerInfos[m_CallvoteSelectedPlayer])
 					{
-						m_pClient->m_pVoting->ForcevoteKick(m_CallvoteSelectedPlayer);
+						m_pClient->m_pVoting->ForcevoteKick(m_CallvoteSelectedPlayer, m_aCallvoteReason);
+						m_aCallvoteReason[0] = 0;
 						SetActive(false);
 					}
 				}
